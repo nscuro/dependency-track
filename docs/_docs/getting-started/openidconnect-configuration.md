@@ -5,6 +5,8 @@ chapter: 1
 order: 9
 ---
 
+> OpenID Connect is available in Dependency-Track v4.0.0 and later
+
 Generally, Dependency-Track can be used with any identity provider that implements the [OpenID Connect standard](https://openid.net/connect/).
 connect2id maintains a list of [public OpenID Connect Identity Providers](https://connect2id.com/products/nimbus-oauth-openid-connect-sdk/openid-connect-providers).
 Although usage with public providers is technically possible, it's strongly recommended to only use providers
