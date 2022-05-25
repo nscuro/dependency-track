@@ -60,7 +60,7 @@ jobs:
       - name: Commit Version
         env:
           # or change it to a custom PAT that has push rights to the branch
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.USER_PAT }}
         run: |-
           MESSAGE="prepare-release: set version to ${VERSION}"
           CONTENT=$(base64 -i pom.xml)
@@ -95,7 +95,7 @@ jobs:
       - name: Create GitHub Release
         env:
           # or change it to a custom PAT that should be credited for the release
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.USER_PAT }}
         run: |-
           gh release create "${{ needs.prepare-release.outputs.version }}" \
             --target "${{ needs.prepare-release.outputs.release-branch }}" \
@@ -124,7 +124,7 @@ jobs:
       - name: Commit SNAPSHOT Version
         env:
           # or change it to a custom PAT that has push rights to the branch
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.USER_PAT }}
         run: |-
           MESSAGE="prepare-iteration: set version to ${NEXT_VERSION}"
           CONTENT=$(base64 -i pom.xml)
