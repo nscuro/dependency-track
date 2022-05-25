@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Assert ref type
         run: |-
-          if [[ "$GITHUB_REF_TYPE" != "tag" ]];
+          if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
             echo "::error::Only tags can be published"
             exit 1
           fi
