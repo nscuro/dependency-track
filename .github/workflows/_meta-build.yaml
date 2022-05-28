@@ -84,16 +84,16 @@ jobs:
         uses: docker/login-action@v2.0.0
         if: ${{ inputs.publish-container }}
         with:
-          registry: docker.io
+          registry: ghcr.io
           username: ${{ secrets.registry-0-usr }}
           password: ${{ secrets.registry-0-psw }}
 
       - name: Set Container Tags
         id: tags
         run: |-
-          TAGS="docker.io/dependencytrack/${{ matrix.distribution }}:${{ inputs.app-version }}"
+          TAGS="ghcr.io/nscuro/dtrack-${{ matrix.distribution }}:${{ inputs.app-version }}"
           if [[ "${{ inputs.app-version }}" != "snapshot" ]]; then
-            TAGS="${TAGS},docker.io/dependencytrack/${{ matrix.distribution }}:latest"
+            TAGS="${TAGS},ghcr.io/nscuro/dtrack-${{ matrix.distribution }}:latest"
           fi
           echo "::set-output name=tags::${TAGS}"
 
@@ -114,7 +114,7 @@ jobs:
         if: ${{ inputs.publish-container }}
         uses: aquasecurity/trivy-action@0.3.0
         with:
-          image-ref: docker.io/dependencytrack/${{ matrix.distribution }}:${{ inputs.app-version }}
+          image-ref: ghcr.io/nscuro/dtrack-${{ matrix.distribution }}:${{ inputs.app-version }}
           format: 'sarif'
           output: 'trivy-results.sarif'
           ignore-unfixed: true
