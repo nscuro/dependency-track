@@ -80,7 +80,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
      */
     public void inform(final Event e) {
         if (e instanceof OssIndexAnalysisEvent) {
-            if (!super.isEnabled(ConfigPropertyConstants.SCANNER_OSSINDEX_ENABLED)) {
+            if (super.isEnabled(ConfigPropertyConstants.SCANNER_OSSINDEX_ENABLED)) {
                 return;
             }
             try (QueryManager qm = new QueryManager()) {

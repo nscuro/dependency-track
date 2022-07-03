@@ -96,6 +96,8 @@
         <lib.jdbc-driver.mssql.version>11.1.2.jre11-preview</lib.jdbc-driver.mssql.version>
         <lib.jdbc-driver.mysql.version>8.0.29</lib.jdbc-driver.mysql.version>
         <lib.jdbc-driver.postgresql.version>42.4.0</lib.jdbc-driver.postgresql.version>
+        <!-- Maven Plugin Versions -->
+        <plugin.openapi-generator.version>6.0.0</plugin.openapi-generator.version>
         <!-- Maven Plugin Properties -->
         <plugin.cyclonedx.projectType>application</plugin.cyclonedx.projectType>
         <plugin.retirejs.breakOnFailure>false</plugin.retirejs.breakOnFailure>
@@ -269,6 +271,12 @@
             <artifactId>commons-compress</artifactId>
             <version>1.21</version>
         </dependency>
+        <!-- Jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${lib.jackson-databind.version}</version>
+        </dependency>
         <!-- Test Dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -330,6 +338,31 @@
             </testResource>
         </testResources>
         <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${plugin.openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/osv_service_v1.swagger.json</inputSpec>
+                            <generatorName>java</generatorName>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <configOptions>
+                                <sourceFolder>src/gen/java/main</sourceFolder>
+                                <library>apache-httpclient</library>
+                                <apiPackage>com.google.osv.api</apiPackage>
+                                <modelPackage>com.google.osv.model</modelPackage>
+                                <serializationLibrary>jackson</serializationLibrary>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>3.1.0</version>

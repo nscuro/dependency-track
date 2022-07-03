@@ -16,18 +16,28 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.tasks.scanners;
+package org.dependencytrack.event;
+
+import org.dependencytrack.model.Component;
+
+import java.util.List;
 
 /**
- * Specifies identities of all supported analyzers.
+ * Defines an event used to start an analysis via Sonatype OSS Index REST API.
  *
- * @since 4.0.0
+ * @author Steve Springett
+ * @since 3.2.0
  */
-public enum AnalyzerIdentity {
-    INTERNAL_ANALYZER,
-    OSSINDEX_ANALYZER,
-    NPM_AUDIT_ANALYZER,
-    VULNDB_ANALYZER,
-    OSV_ANALYZER,
-    NONE
+public class OsvAnalysisEvent extends VulnerabilityAnalysisEvent {
+
+    public OsvAnalysisEvent() { }
+
+    public OsvAnalysisEvent(final Component component) {
+        super(component);
+    }
+
+    public OsvAnalysisEvent(final List<Component> components) {
+        super(components);
+    }
+
 }
