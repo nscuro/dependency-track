@@ -33,4 +33,4 @@ jobs:
         git config --global user.name nscuro
         git config --global user.email 5693141+nscuro@users.noreply.github.com
     - name: Deploy
-      run: mike deploy --push ${{ steps.determine_version.outputs.version }}
+      run: mike deploy --push --update-aliases ${{ steps.determine_version.outputs.version }} latest
