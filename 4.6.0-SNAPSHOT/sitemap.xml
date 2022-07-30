@@ -5,4 +5,44 @@
          <lastmod>2022-07-30</lastmod>
          <changefreq>daily</changefreq>
     </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/configuration/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/database-support/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/distributions/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/initial-startup/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/monitoring/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/deployment/docker/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/deployment/exewar/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/deployment/kubernetes/</loc>
+         <lastmod>2022-07-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
 </urlset>

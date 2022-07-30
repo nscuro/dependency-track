@@ -1,0 +1,1147 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://docs.dependencytrack.org/4.6.0-SNAPSHOT/getting-started/configuration/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.3.9">
+    
+    
+      
+        <title>Configuration - Dependency-Track</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.1d29e8d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.cbb835fc.min.css">
+        
+      
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-server" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Dependency-Track" class="md-header__button md-logo" aria-label="Dependency-Track" data-md-component="logo">
+      
+  <img src="../../assets/images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dependency-Track
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/DependencyTrack/dependency-track" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    DependencyTrack/dependency-track
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../distributions/" class="md-tabs__link md-tabs__link--active">
+        Getting Started
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Dependency-Track" class="md-nav__button md-logo" aria-label="Dependency-Track" data-md-component="logo">
+      
+  <img src="../../assets/images/logo.png" alt="logo">
+
+    </a>
+    Dependency-Track
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/DependencyTrack/dependency-track" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    DependencyTrack/dependency-track
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Getting Started
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting Started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributions/" class="md-nav__link">
+        Distributions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2" type="checkbox" id="__nav_2_2" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_2">
+          Deployment
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Deployment" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          Deployment
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/docker/" class="md-nav__link">
+        Docker
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/kubernetes/" class="md-nav__link">
+        Kubernetes
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/exewar/" class="md-nav__link">
+        Executable WAR
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../initial-startup/" class="md-nav__link">
+        Initial Startup
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Configuration
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Configuration
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#api-server" class="md-nav__link">
+    API Server
+  </a>
+  
+    <nav class="md-nav" aria-label="API Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-configuration" class="md-nav__link">
+    Default configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proxy-configuration" class="md-nav__link">
+    Proxy Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging-levels" class="md-nav__link">
+    Logging Levels
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    Frontend
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-configuration_1" class="md-nav__link">
+    Default configuration
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-support/" class="md-nav__link">
+        Database Support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monitoring/" class="md-nav__link">
+        Monitoring
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#api-server" class="md-nav__link">
+    API Server
+  </a>
+  
+    <nav class="md-nav" aria-label="API Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-configuration" class="md-nav__link">
+    Default configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proxy-configuration" class="md-nav__link">
+    Proxy Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging-levels" class="md-nav__link">
+    Logging Levels
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    Frontend
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-configuration_1" class="md-nav__link">
+    Default configuration
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+  <a href="https://github.com/DependencyTrack/dependency-track/edit/master/docs/getting-started/configuration.md" title="Edit this page" class="md-content__button md-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+
+  <h1>Configuration</h1>
+
+<h2 id="api-server">API Server</h2>
+<p>The central configuration file <code>application.properties</code> resides in the classpath of the WAR by default.
+This configuration file controls many performance tuning parameters but is most useful for defining
+optional external database sources, directory services (LDAP), and proxy settings.</p>
+<p>For containerized deployments, the properties defined in the configuration file can also be specified
+as environment variables. All environment variables are upper case with periods (.) replaced with underscores (_).
+Refer to the <a href="{{ site.baseurl }}{% link _docs/getting-started/deploy-docker.md %}">Docker instructions</a> for
+configuration examples using environment variables.</p>
+<p>Dependency-Track administrators are highly encouraged to create a copy of this file in the
+Dependency-Track data directory and customize it prior to deploying to production.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The default embedded H2 database is designed to quickly evaluate and experiment with Dependency-Track. 
+Do not use the embedded H2 database in production environments.</p>
+<p>See: <a href="{{ site.baseurl }}{% link _docs/getting-started/database-support.md %}">Database Support</a>.</p>
+</div>
+<p>To start Dependency-Track using custom configuration, add the system property
+<code>alpine.application.properties</code> when executing. For example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>-Dalpine.application.properties<span class="o">=</span>~/.dependency-track/application.properties
+</code></pre></div>
+<h3 id="default-configuration">Default configuration</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">############################ Alpine Configuration ###########################</span><span class="w"></span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Defines the number of worker threads that the event subsystem will consume.</span><span class="w"></span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Events occur asynchronously and are processed by the Event subsystem. This</span><span class="w"></span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># value should be large enough to handle most production situations without</span><span class="w"></span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># introducing much delay, yet small enough not to pose additional load on an</span><span class="w"></span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># already resource-constrained server.</span><span class="w"></span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># A value of 0 will instruct Alpine to allocate 1 thread per CPU core. This</span><span class="w"></span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># can further be tweaked using the alpine.worker.thread.multiplier property.</span><span class="w"></span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># Default value is 0.</span><span class="w"></span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="na">alpine.worker.threads</span><span class="o">=</span><span class="s">0</span><span class="w"></span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="c1"># Defines a multiplier that is used to calculate the number of threads used</span><span class="w"></span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># by the event subsystem. This property is only used when alpine.worker.threads</span><span class="w"></span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="c1"># is set to 0. A machine with 4 cores and a multiplier of 4, will use (at most)</span><span class="w"></span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="c1"># 16 worker threads. Default value is 4.</span><span class="w"></span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="na">alpine.worker.thread.multiplier</span><span class="o">=</span><span class="s">4</span><span class="w"></span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="c1"># Defines the path to the data directory. This directory will hold logs, keys,</span><span class="w"></span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="c1"># and any database or index files along with application-specific files or </span><span class="w"></span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="c1"># directories.</span><span class="w"></span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="na">alpine.data.directory</span><span class="o">=</span><span class="s">~/.dependency-track</span><span class="w"></span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="c1"># Defines the interval (in seconds) to log general heath information. If value</span><span class="w"></span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="c1"># equals 0, watchdog logging will be disabled.</span><span class="w"></span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="na">alpine.watchdog.logging.interval</span><span class="o">=</span><span class="s">0</span><span class="w"></span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="c1"># Defines the database mode of operation. Valid choices are:</span><span class="w"></span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="c1"># &#39;server&#39;, &#39;embedded&#39;, and &#39;external&#39;.</span><span class="w"></span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="c1"># In server mode, the database will listen for connections from remote hosts.</span><span class="w"></span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="c1"># In embedded mode, the system will be more secure and slightly faster. </span><span class="w"></span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="c1"># External mode should be used when utilizing an external database server </span><span class="w"></span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="c1"># (i.e. mysql, postgresql, etc).</span><span class="w"></span>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="na">alpine.database.mode</span><span class="o">=</span><span class="s">embedded</span><span class="w"></span>
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="c1"># Defines the TCP port to use when the database.mode is set to &#39;server&#39;.</span><span class="w"></span>
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="na">alpine.database.port</span><span class="o">=</span><span class="s">9092</span><span class="w"></span>
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a><span class="c1"># Specifies the JDBC URL to use when connecting to the database.</span><span class="w"></span>
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="na">alpine.database.url</span><span class="o">=</span><span class="s">jdbc:h2:~/.dependency-track/db</span><span class="w"></span>
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a><span class="c1"># Specifies the JDBC driver class to use.</span><span class="w"></span>
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a><span class="na">alpine.database.driver</span><span class="o">=</span><span class="s">org.h2.Driver</span><span class="w"></span>
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a><span class="c1"># Specifies the username to use when authenticating to the database.</span><span class="w"></span>
+<a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a><span class="na">alpine.database.username</span><span class="o">=</span><span class="s">sa</span><span class="w"></span>
+<a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a>
+<a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-58" name="__codelineno-1-58" href="#__codelineno-1-58"></a><span class="c1"># Specifies the password to use when authenticating to the database.</span><span class="w"></span>
+<a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a><span class="c1"># alpine.database.password=</span><span class="w"></span>
+<a id="__codelineno-1-60" name="__codelineno-1-60" href="#__codelineno-1-60"></a>
+<a id="__codelineno-1-61" name="__codelineno-1-61" href="#__codelineno-1-61"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-62" name="__codelineno-1-62" href="#__codelineno-1-62"></a><span class="c1"># Specifies if the database connection pool is enabled.</span><span class="w"></span>
+<a id="__codelineno-1-63" name="__codelineno-1-63" href="#__codelineno-1-63"></a><span class="na">alpine.database.pool.enabled</span><span class="o">=</span><span class="s">true</span><span class="w"></span>
+<a id="__codelineno-1-64" name="__codelineno-1-64" href="#__codelineno-1-64"></a>
+<a id="__codelineno-1-65" name="__codelineno-1-65" href="#__codelineno-1-65"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-66" name="__codelineno-1-66" href="#__codelineno-1-66"></a><span class="c1"># This property controls the maximum size that the pool is allowed to reach,</span><span class="w"></span>
+<a id="__codelineno-1-67" name="__codelineno-1-67" href="#__codelineno-1-67"></a><span class="c1"># including both idle and in-use connections.</span><span class="w"></span>
+<a id="__codelineno-1-68" name="__codelineno-1-68" href="#__codelineno-1-68"></a><span class="na">alpine.database.pool.max.size</span><span class="o">=</span><span class="s">20</span><span class="w"></span>
+<a id="__codelineno-1-69" name="__codelineno-1-69" href="#__codelineno-1-69"></a>
+<a id="__codelineno-1-70" name="__codelineno-1-70" href="#__codelineno-1-70"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-71" name="__codelineno-1-71" href="#__codelineno-1-71"></a><span class="c1"># This property controls the minimum number of idle connections in the pool.</span><span class="w"></span>
+<a id="__codelineno-1-72" name="__codelineno-1-72" href="#__codelineno-1-72"></a><span class="c1"># This value should be equal to or less than alpine.database.pool.max.size.</span><span class="w"></span>
+<a id="__codelineno-1-73" name="__codelineno-1-73" href="#__codelineno-1-73"></a><span class="c1"># Warning: If the value is less than alpine.database.pool.max.size, </span><span class="w"></span>
+<a id="__codelineno-1-74" name="__codelineno-1-74" href="#__codelineno-1-74"></a><span class="c1"># alpine.database.pool.idle.timeout will have no effect.</span><span class="w"></span>
+<a id="__codelineno-1-75" name="__codelineno-1-75" href="#__codelineno-1-75"></a><span class="na">alpine.database.pool.min.idle</span><span class="o">=</span><span class="s">10</span><span class="w"></span>
+<a id="__codelineno-1-76" name="__codelineno-1-76" href="#__codelineno-1-76"></a>
+<a id="__codelineno-1-77" name="__codelineno-1-77" href="#__codelineno-1-77"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-78" name="__codelineno-1-78" href="#__codelineno-1-78"></a><span class="c1"># This property controls the maximum amount of time that a connection is</span><span class="w"></span>
+<a id="__codelineno-1-79" name="__codelineno-1-79" href="#__codelineno-1-79"></a><span class="c1"># allowed to sit idle in the pool.</span><span class="w"></span>
+<a id="__codelineno-1-80" name="__codelineno-1-80" href="#__codelineno-1-80"></a><span class="na">alpine.database.pool.idle.timeout</span><span class="o">=</span><span class="s">300000</span><span class="w"></span>
+<a id="__codelineno-1-81" name="__codelineno-1-81" href="#__codelineno-1-81"></a>
+<a id="__codelineno-1-82" name="__codelineno-1-82" href="#__codelineno-1-82"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-83" name="__codelineno-1-83" href="#__codelineno-1-83"></a><span class="c1"># This property controls the maximum lifetime of a connection in the pool.</span><span class="w"></span>
+<a id="__codelineno-1-84" name="__codelineno-1-84" href="#__codelineno-1-84"></a><span class="c1"># An in-use connection will never be retired, only when it is closed will</span><span class="w"></span>
+<a id="__codelineno-1-85" name="__codelineno-1-85" href="#__codelineno-1-85"></a><span class="c1"># it then be removed.</span><span class="w"></span>
+<a id="__codelineno-1-86" name="__codelineno-1-86" href="#__codelineno-1-86"></a><span class="na">alpine.database.pool.max.lifetime</span><span class="o">=</span><span class="s">600000</span><span class="w"></span>
+<a id="__codelineno-1-87" name="__codelineno-1-87" href="#__codelineno-1-87"></a>
+<a id="__codelineno-1-88" name="__codelineno-1-88" href="#__codelineno-1-88"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-89" name="__codelineno-1-89" href="#__codelineno-1-89"></a><span class="c1"># When authentication is enforced, API keys are required for automation, and</span><span class="w"></span>
+<a id="__codelineno-1-90" name="__codelineno-1-90" href="#__codelineno-1-90"></a><span class="c1"># the user interface will prevent anonymous access by prompting for login</span><span class="w"></span>
+<a id="__codelineno-1-91" name="__codelineno-1-91" href="#__codelineno-1-91"></a><span class="c1"># credentials.</span><span class="w"></span>
+<a id="__codelineno-1-92" name="__codelineno-1-92" href="#__codelineno-1-92"></a><span class="na">alpine.enforce.authentication</span><span class="o">=</span><span class="s">true</span><span class="w"></span>
+<a id="__codelineno-1-93" name="__codelineno-1-93" href="#__codelineno-1-93"></a>
+<a id="__codelineno-1-94" name="__codelineno-1-94" href="#__codelineno-1-94"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-95" name="__codelineno-1-95" href="#__codelineno-1-95"></a><span class="c1"># When authorization is enforced, team membership for both API keys and user</span><span class="w"></span>
+<a id="__codelineno-1-96" name="__codelineno-1-96" href="#__codelineno-1-96"></a><span class="c1"># accounts are restricted to what the team itself has access to. To enforce </span><span class="w"></span>
+<a id="__codelineno-1-97" name="__codelineno-1-97" href="#__codelineno-1-97"></a><span class="c1"># authorization, the enforce.authentication property (above) must be true.</span><span class="w"></span>
+<a id="__codelineno-1-98" name="__codelineno-1-98" href="#__codelineno-1-98"></a><span class="na">alpine.enforce.authorization</span><span class="o">=</span><span class="s">true</span><span class="w"></span>
+<a id="__codelineno-1-99" name="__codelineno-1-99" href="#__codelineno-1-99"></a>
+<a id="__codelineno-1-100" name="__codelineno-1-100" href="#__codelineno-1-100"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-101" name="__codelineno-1-101" href="#__codelineno-1-101"></a><span class="c1"># Specifies the number of bcrypt rounds to use when hashing a users password.</span><span class="w"></span>
+<a id="__codelineno-1-102" name="__codelineno-1-102" href="#__codelineno-1-102"></a><span class="c1"># The higher the number the more secure the password, at the expense of</span><span class="w"></span>
+<a id="__codelineno-1-103" name="__codelineno-1-103" href="#__codelineno-1-103"></a><span class="c1"># hardware resources and additional time to generate the hash.</span><span class="w"></span>
+<a id="__codelineno-1-104" name="__codelineno-1-104" href="#__codelineno-1-104"></a><span class="na">alpine.bcrypt.rounds</span><span class="o">=</span><span class="s">14</span><span class="w"></span>
+<a id="__codelineno-1-105" name="__codelineno-1-105" href="#__codelineno-1-105"></a>
+<a id="__codelineno-1-106" name="__codelineno-1-106" href="#__codelineno-1-106"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-107" name="__codelineno-1-107" href="#__codelineno-1-107"></a><span class="c1"># Defines if LDAP will be used for user authentication. If enabled,</span><span class="w"></span>
+<a id="__codelineno-1-108" name="__codelineno-1-108" href="#__codelineno-1-108"></a><span class="c1"># alpine.ldap.* properties should be set accordingly.</span><span class="w"></span>
+<a id="__codelineno-1-109" name="__codelineno-1-109" href="#__codelineno-1-109"></a><span class="na">alpine.ldap.enabled</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+<a id="__codelineno-1-110" name="__codelineno-1-110" href="#__codelineno-1-110"></a>
+<a id="__codelineno-1-111" name="__codelineno-1-111" href="#__codelineno-1-111"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-112" name="__codelineno-1-112" href="#__codelineno-1-112"></a><span class="c1"># Specifies the LDAP server URL</span><span class="w"></span>
+<a id="__codelineno-1-113" name="__codelineno-1-113" href="#__codelineno-1-113"></a><span class="c1"># Example (Microsoft Active Directory):</span><span class="w"></span>
+<a id="__codelineno-1-114" name="__codelineno-1-114" href="#__codelineno-1-114"></a><span class="c1">#    alpine.ldap.server.url=ldap://ldap.example.com:3268</span><span class="w"></span>
+<a id="__codelineno-1-115" name="__codelineno-1-115" href="#__codelineno-1-115"></a><span class="c1">#    alpine.ldap.server.url=ldaps://ldap.example.com:3269</span><span class="w"></span>
+<a id="__codelineno-1-116" name="__codelineno-1-116" href="#__codelineno-1-116"></a><span class="c1"># Example (ApacheDS, Fedora 389 Directory, NetIQ/Novell eDirectory, etc):</span><span class="w"></span>
+<a id="__codelineno-1-117" name="__codelineno-1-117" href="#__codelineno-1-117"></a><span class="c1">#    alpine.ldap.server.url=ldap://ldap.example.com:389</span><span class="w"></span>
+<a id="__codelineno-1-118" name="__codelineno-1-118" href="#__codelineno-1-118"></a><span class="c1">#    alpine.ldap.server.url=ldaps://ldap.example.com:636</span><span class="w"></span>
+<a id="__codelineno-1-119" name="__codelineno-1-119" href="#__codelineno-1-119"></a><span class="na">alpine.ldap.server.url</span><span class="o">=</span><span class="s">ldap://ldap.example.com:389</span><span class="w"></span>
+<a id="__codelineno-1-120" name="__codelineno-1-120" href="#__codelineno-1-120"></a>
+<a id="__codelineno-1-121" name="__codelineno-1-121" href="#__codelineno-1-121"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-122" name="__codelineno-1-122" href="#__codelineno-1-122"></a><span class="c1"># Specifies the base DN that all queries should search from</span><span class="w"></span>
+<a id="__codelineno-1-123" name="__codelineno-1-123" href="#__codelineno-1-123"></a><span class="na">alpine.ldap.basedn</span><span class="o">=</span><span class="s">dc=example,dc=com</span><span class="w"></span>
+<a id="__codelineno-1-124" name="__codelineno-1-124" href="#__codelineno-1-124"></a>
+<a id="__codelineno-1-125" name="__codelineno-1-125" href="#__codelineno-1-125"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-126" name="__codelineno-1-126" href="#__codelineno-1-126"></a><span class="c1"># Specifies the LDAP security authentication level to use. Its value is one of</span><span class="w"></span>
+<a id="__codelineno-1-127" name="__codelineno-1-127" href="#__codelineno-1-127"></a><span class="c1"># the following strings: &quot;none&quot;, &quot;simple&quot;, &quot;strong&quot;. If this property is empty</span><span class="w"></span>
+<a id="__codelineno-1-128" name="__codelineno-1-128" href="#__codelineno-1-128"></a><span class="c1"># or unspecified, the behaviour is determined by the service provider.</span><span class="w"></span>
+<a id="__codelineno-1-129" name="__codelineno-1-129" href="#__codelineno-1-129"></a><span class="na">alpine.ldap.security.auth</span><span class="o">=</span><span class="s">simple</span><span class="w"></span>
+<a id="__codelineno-1-130" name="__codelineno-1-130" href="#__codelineno-1-130"></a>
+<a id="__codelineno-1-131" name="__codelineno-1-131" href="#__codelineno-1-131"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-132" name="__codelineno-1-132" href="#__codelineno-1-132"></a><span class="c1"># If anonymous access is not permitted, specify a username with limited access</span><span class="w"></span>
+<a id="__codelineno-1-133" name="__codelineno-1-133" href="#__codelineno-1-133"></a><span class="c1"># to the directory, just enough to perform searches. This should be the fully</span><span class="w"></span>
+<a id="__codelineno-1-134" name="__codelineno-1-134" href="#__codelineno-1-134"></a><span class="c1"># qualified DN of the user.</span><span class="w"></span>
+<a id="__codelineno-1-135" name="__codelineno-1-135" href="#__codelineno-1-135"></a><span class="na">alpine.ldap.bind.username</span><span class="o">=</span><span class="w"></span>
+<a id="__codelineno-1-136" name="__codelineno-1-136" href="#__codelineno-1-136"></a>
+<a id="__codelineno-1-137" name="__codelineno-1-137" href="#__codelineno-1-137"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-138" name="__codelineno-1-138" href="#__codelineno-1-138"></a><span class="c1"># If anonymous access is not permitted, specify a password for the username</span><span class="w"></span>
+<a id="__codelineno-1-139" name="__codelineno-1-139" href="#__codelineno-1-139"></a><span class="c1"># used to bind.</span><span class="w"></span>
+<a id="__codelineno-1-140" name="__codelineno-1-140" href="#__codelineno-1-140"></a><span class="na">alpine.ldap.bind.password</span><span class="o">=</span><span class="w"></span>
+<a id="__codelineno-1-141" name="__codelineno-1-141" href="#__codelineno-1-141"></a>
+<a id="__codelineno-1-142" name="__codelineno-1-142" href="#__codelineno-1-142"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-143" name="__codelineno-1-143" href="#__codelineno-1-143"></a><span class="c1"># Specifies if the username entered during login needs to be formatted prior</span><span class="w"></span>
+<a id="__codelineno-1-144" name="__codelineno-1-144" href="#__codelineno-1-144"></a><span class="c1"># to asserting credentials against the directory. For Active Directory, the</span><span class="w"></span>
+<a id="__codelineno-1-145" name="__codelineno-1-145" href="#__codelineno-1-145"></a><span class="c1"># userPrincipal attribute typically ends with the domain, whereas the</span><span class="w"></span>
+<a id="__codelineno-1-146" name="__codelineno-1-146" href="#__codelineno-1-146"></a><span class="c1"># samAccountName attribute and other directory server implementations do not.</span><span class="w"></span>
+<a id="__codelineno-1-147" name="__codelineno-1-147" href="#__codelineno-1-147"></a><span class="c1"># The %s variable will be substitued with the username asserted during login.</span><span class="w"></span>
+<a id="__codelineno-1-148" name="__codelineno-1-148" href="#__codelineno-1-148"></a><span class="c1"># Example (Microsoft Active Directory):</span><span class="w"></span>
+<a id="__codelineno-1-149" name="__codelineno-1-149" href="#__codelineno-1-149"></a><span class="c1">#    alpine.ldap.auth.username.format=%s@example.com</span><span class="w"></span>
+<a id="__codelineno-1-150" name="__codelineno-1-150" href="#__codelineno-1-150"></a><span class="c1"># Example (ApacheDS, Fedora 389 Directory, NetIQ/Novell eDirectory, etc):</span><span class="w"></span>
+<a id="__codelineno-1-151" name="__codelineno-1-151" href="#__codelineno-1-151"></a><span class="c1">#    alpine.ldap.auth.username.format=%s</span><span class="w"></span>
+<a id="__codelineno-1-152" name="__codelineno-1-152" href="#__codelineno-1-152"></a><span class="na">alpine.ldap.auth.username.format</span><span class="o">=</span><span class="s">%s@example.com</span><span class="w"></span>
+<a id="__codelineno-1-153" name="__codelineno-1-153" href="#__codelineno-1-153"></a>
+<a id="__codelineno-1-154" name="__codelineno-1-154" href="#__codelineno-1-154"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-155" name="__codelineno-1-155" href="#__codelineno-1-155"></a><span class="c1"># Specifies the Attribute that identifies a users ID</span><span class="w"></span>
+<a id="__codelineno-1-156" name="__codelineno-1-156" href="#__codelineno-1-156"></a><span class="c1"># Example (Microsoft Active Directory):</span><span class="w"></span>
+<a id="__codelineno-1-157" name="__codelineno-1-157" href="#__codelineno-1-157"></a><span class="c1">#    alpine.ldap.attribute.name=userPrincipalName</span><span class="w"></span>
+<a id="__codelineno-1-158" name="__codelineno-1-158" href="#__codelineno-1-158"></a><span class="c1"># Example (ApacheDS, Fedora 389 Directory, NetIQ/Novell eDirectory, etc):</span><span class="w"></span>
+<a id="__codelineno-1-159" name="__codelineno-1-159" href="#__codelineno-1-159"></a><span class="c1">#    alpine.ldap.attribute.name=uid</span><span class="w"></span>
+<a id="__codelineno-1-160" name="__codelineno-1-160" href="#__codelineno-1-160"></a><span class="na">alpine.ldap.attribute.name</span><span class="o">=</span><span class="s">userPrincipalName</span><span class="w"></span>
+<a id="__codelineno-1-161" name="__codelineno-1-161" href="#__codelineno-1-161"></a>
+<a id="__codelineno-1-162" name="__codelineno-1-162" href="#__codelineno-1-162"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-163" name="__codelineno-1-163" href="#__codelineno-1-163"></a><span class="c1"># Specifies the LDAP attribute used to store a users email address</span><span class="w"></span>
+<a id="__codelineno-1-164" name="__codelineno-1-164" href="#__codelineno-1-164"></a><span class="na">alpine.ldap.attribute.mail</span><span class="o">=</span><span class="s">mail</span><span class="w"></span>
+<a id="__codelineno-1-165" name="__codelineno-1-165" href="#__codelineno-1-165"></a>
+<a id="__codelineno-1-166" name="__codelineno-1-166" href="#__codelineno-1-166"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-167" name="__codelineno-1-167" href="#__codelineno-1-167"></a><span class="c1"># Specifies the LDAP search filter used to retrieve all groups from the</span><span class="w"></span>
+<a id="__codelineno-1-168" name="__codelineno-1-168" href="#__codelineno-1-168"></a><span class="c1"># directory.</span><span class="w"></span>
+<a id="__codelineno-1-169" name="__codelineno-1-169" href="#__codelineno-1-169"></a><span class="c1"># Example (Microsoft Active Directory):</span><span class="w"></span>
+<a id="__codelineno-1-170" name="__codelineno-1-170" href="#__codelineno-1-170"></a><span class="c1">#    alpine.ldap.groups.filter=(&amp;(objectClass=group)(objectCategory=Group))</span><span class="w"></span>
+<a id="__codelineno-1-171" name="__codelineno-1-171" href="#__codelineno-1-171"></a><span class="c1"># Example (ApacheDS, Fedora 389 Directory, NetIQ/Novell eDirectory, etc):</span><span class="w"></span>
+<a id="__codelineno-1-172" name="__codelineno-1-172" href="#__codelineno-1-172"></a><span class="c1">#    alpine.ldap.groups.filter=(&amp;(objectClass=groupOfUniqueNames))</span><span class="w"></span>
+<a id="__codelineno-1-173" name="__codelineno-1-173" href="#__codelineno-1-173"></a><span class="na">alpine.ldap.groups.filter</span><span class="o">=</span><span class="s">(&amp;(objectClass=group)(objectCategory=Group))</span><span class="w"></span>
+<a id="__codelineno-1-174" name="__codelineno-1-174" href="#__codelineno-1-174"></a>
+<a id="__codelineno-1-175" name="__codelineno-1-175" href="#__codelineno-1-175"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-176" name="__codelineno-1-176" href="#__codelineno-1-176"></a><span class="c1"># Specifies the LDAP search filter to use to query a user and retrieve a list</span><span class="w"></span>
+<a id="__codelineno-1-177" name="__codelineno-1-177" href="#__codelineno-1-177"></a><span class="c1"># of groups the user is a member of. The {USER_DN} variable will be substituted</span><span class="w"></span>
+<a id="__codelineno-1-178" name="__codelineno-1-178" href="#__codelineno-1-178"></a><span class="c1"># with the actual value of the users DN at runtime.</span><span class="w"></span>
+<a id="__codelineno-1-179" name="__codelineno-1-179" href="#__codelineno-1-179"></a><span class="c1"># Example (Microsoft Active Directory):</span><span class="w"></span>
+<a id="__codelineno-1-180" name="__codelineno-1-180" href="#__codelineno-1-180"></a><span class="c1">#    alpine.ldap.user.groups.filter=(&amp;(objectClass=group)(objectCategory=Group)(member={USER_DN}))</span><span class="w"></span>
+<a id="__codelineno-1-181" name="__codelineno-1-181" href="#__codelineno-1-181"></a><span class="c1"># Example (Microsoft Active Directory - with nested group support):</span><span class="w"></span>
+<a id="__codelineno-1-182" name="__codelineno-1-182" href="#__codelineno-1-182"></a><span class="c1">#    alpine.ldap.user.groups.filter=(member:1.2.840.113556.1.4.1941:={USER_DN})</span><span class="w"></span>
+<a id="__codelineno-1-183" name="__codelineno-1-183" href="#__codelineno-1-183"></a><span class="c1"># Example (ApacheDS, Fedora 389 Directory, NetIQ/Novell eDirectory, etc):</span><span class="w"></span>
+<a id="__codelineno-1-184" name="__codelineno-1-184" href="#__codelineno-1-184"></a><span class="c1">#    alpine.ldap.user.groups.filter=(&amp;(objectClass=groupOfUniqueNames)(uniqueMember={USER_DN}))</span><span class="w"></span>
+<a id="__codelineno-1-185" name="__codelineno-1-185" href="#__codelineno-1-185"></a><span class="na">alpine.ldap.user.groups.filter</span><span class="o">=</span><span class="s">(member:1.2.840.113556.1.4.1941:={USER_DN})</span><span class="w"></span>
+<a id="__codelineno-1-186" name="__codelineno-1-186" href="#__codelineno-1-186"></a>
+<a id="__codelineno-1-187" name="__codelineno-1-187" href="#__codelineno-1-187"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-188" name="__codelineno-1-188" href="#__codelineno-1-188"></a><span class="c1"># Specifies the LDAP search filter used to search for groups by their name.</span><span class="w"></span>
+<a id="__codelineno-1-189" name="__codelineno-1-189" href="#__codelineno-1-189"></a><span class="c1"># The {SEARCH_TERM} variable will be substituted at runtime.</span><span class="w"></span>
+<a id="__codelineno-1-190" name="__codelineno-1-190" href="#__codelineno-1-190"></a><span class="c1"># Example (Microsoft Active Directory):</span><span class="w"></span>
+<a id="__codelineno-1-191" name="__codelineno-1-191" href="#__codelineno-1-191"></a><span class="c1">#    alpine.ldap.groups.search.filter=(&amp;(objectClass=group)(objectCategory=Group)(cn=*{SEARCH_TERM}*))</span><span class="w"></span>
+<a id="__codelineno-1-192" name="__codelineno-1-192" href="#__codelineno-1-192"></a><span class="c1"># Example (ApacheDS, Fedora 389 Directory, NetIQ/Novell eDirectory, etc):</span><span class="w"></span>
+<a id="__codelineno-1-193" name="__codelineno-1-193" href="#__codelineno-1-193"></a><span class="c1">#    alpine.ldap.groups.search.filter=(&amp;(objectClass=groupOfUniqueNames)(cn=*{SEARCH_TERM}*))</span><span class="w"></span>
+<a id="__codelineno-1-194" name="__codelineno-1-194" href="#__codelineno-1-194"></a><span class="na">alpine.ldap.groups.search.filter</span><span class="o">=</span><span class="s">(&amp;(objectClass=group)(objectCategory=Group)(cn=*{SEARCH_TERM}*))</span><span class="w"></span>
+<a id="__codelineno-1-195" name="__codelineno-1-195" href="#__codelineno-1-195"></a>
+<a id="__codelineno-1-196" name="__codelineno-1-196" href="#__codelineno-1-196"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-197" name="__codelineno-1-197" href="#__codelineno-1-197"></a><span class="c1"># Specifies the LDAP search filter used to search for users by their name.</span><span class="w"></span>
+<a id="__codelineno-1-198" name="__codelineno-1-198" href="#__codelineno-1-198"></a><span class="c1"># The {SEARCH_TERM} variable will be substituted at runtime.</span><span class="w"></span>
+<a id="__codelineno-1-199" name="__codelineno-1-199" href="#__codelineno-1-199"></a><span class="c1"># Example (Microsoft Active Directory):</span><span class="w"></span>
+<a id="__codelineno-1-200" name="__codelineno-1-200" href="#__codelineno-1-200"></a><span class="c1">#    alpine.ldap.users.search.filter=(&amp;(objectClass=group)(objectCategory=Group)(cn=*{SEARCH_TERM}*))</span><span class="w"></span>
+<a id="__codelineno-1-201" name="__codelineno-1-201" href="#__codelineno-1-201"></a><span class="c1"># Example (ApacheDS, Fedora 389 Directory, NetIQ/Novell eDirectory, etc):</span><span class="w"></span>
+<a id="__codelineno-1-202" name="__codelineno-1-202" href="#__codelineno-1-202"></a><span class="c1">#    alpine.ldap.users.search.filter=(&amp;(objectClass=inetOrgPerson)(cn=*{SEARCH_TERM}*))</span><span class="w"></span>
+<a id="__codelineno-1-203" name="__codelineno-1-203" href="#__codelineno-1-203"></a><span class="na">alpine.ldap.users.search.filter</span><span class="o">=</span><span class="s">(&amp;(objectClass=user)(objectCategory=Person)(cn=*{SEARCH_TERM}*))</span><span class="w"></span>
+<a id="__codelineno-1-204" name="__codelineno-1-204" href="#__codelineno-1-204"></a>
+<a id="__codelineno-1-205" name="__codelineno-1-205" href="#__codelineno-1-205"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-206" name="__codelineno-1-206" href="#__codelineno-1-206"></a><span class="c1"># Specifies if mapped LDAP accounts are automatically created upon successful</span><span class="w"></span>
+<a id="__codelineno-1-207" name="__codelineno-1-207" href="#__codelineno-1-207"></a><span class="c1"># authentication. When a user logs in with valid credentials but an account has</span><span class="w"></span>
+<a id="__codelineno-1-208" name="__codelineno-1-208" href="#__codelineno-1-208"></a><span class="c1"># not been previously provisioned, an authentication failure will be returned.</span><span class="w"></span>
+<a id="__codelineno-1-209" name="__codelineno-1-209" href="#__codelineno-1-209"></a><span class="c1"># This allows admins to control specifically which ldap users can access the</span><span class="w"></span>
+<a id="__codelineno-1-210" name="__codelineno-1-210" href="#__codelineno-1-210"></a><span class="c1"># system and which users cannot. When this value is set to true, a local ldap</span><span class="w"></span>
+<a id="__codelineno-1-211" name="__codelineno-1-211" href="#__codelineno-1-211"></a><span class="c1"># user will be created and mapped to the ldap account automatically. This</span><span class="w"></span>
+<a id="__codelineno-1-212" name="__codelineno-1-212" href="#__codelineno-1-212"></a><span class="c1"># automatic provisioning only affects authentication, not authorization.</span><span class="w"></span>
+<a id="__codelineno-1-213" name="__codelineno-1-213" href="#__codelineno-1-213"></a><span class="na">alpine.ldap.user.provisioning</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+<a id="__codelineno-1-214" name="__codelineno-1-214" href="#__codelineno-1-214"></a>
+<a id="__codelineno-1-215" name="__codelineno-1-215" href="#__codelineno-1-215"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-216" name="__codelineno-1-216" href="#__codelineno-1-216"></a><span class="c1"># This option will ensure that team memberships for LDAP users are dynamic and</span><span class="w"></span>
+<a id="__codelineno-1-217" name="__codelineno-1-217" href="#__codelineno-1-217"></a><span class="c1"># synchronized with membership of LDAP groups. When a team is mapped to an LDAP</span><span class="w"></span>
+<a id="__codelineno-1-218" name="__codelineno-1-218" href="#__codelineno-1-218"></a><span class="c1"># group, all local LDAP users will automatically be assigned to the team if</span><span class="w"></span>
+<a id="__codelineno-1-219" name="__codelineno-1-219" href="#__codelineno-1-219"></a><span class="c1"># they are a member of the group the team is mapped to. If the user is later</span><span class="w"></span>
+<a id="__codelineno-1-220" name="__codelineno-1-220" href="#__codelineno-1-220"></a><span class="c1"># removed from the LDAP group, they will also be removed from the team. This</span><span class="w"></span>
+<a id="__codelineno-1-221" name="__codelineno-1-221" href="#__codelineno-1-221"></a><span class="c1"># option provides the ability to dynamically control user permissions via an</span><span class="w"></span>
+<a id="__codelineno-1-222" name="__codelineno-1-222" href="#__codelineno-1-222"></a><span class="c1"># external directory.</span><span class="w"></span>
+<a id="__codelineno-1-223" name="__codelineno-1-223" href="#__codelineno-1-223"></a><span class="na">alpine.ldap.team.synchronization</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+<a id="__codelineno-1-224" name="__codelineno-1-224" href="#__codelineno-1-224"></a>
+<a id="__codelineno-1-225" name="__codelineno-1-225" href="#__codelineno-1-225"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-226" name="__codelineno-1-226" href="#__codelineno-1-226"></a><span class="c1"># HTTP proxy. If the address is set, then the port must be set too.</span><span class="w"></span>
+<a id="__codelineno-1-227" name="__codelineno-1-227" href="#__codelineno-1-227"></a><span class="c1"># alpine.http.proxy.address=proxy.example.com</span><span class="w"></span>
+<a id="__codelineno-1-228" name="__codelineno-1-228" href="#__codelineno-1-228"></a><span class="c1"># alpine.http.proxy.port=8888</span><span class="w"></span>
+<a id="__codelineno-1-229" name="__codelineno-1-229" href="#__codelineno-1-229"></a><span class="c1"># alpine.http.proxy.username=</span><span class="w"></span>
+<a id="__codelineno-1-230" name="__codelineno-1-230" href="#__codelineno-1-230"></a><span class="c1"># alpine.http.proxy.password=</span><span class="w"></span>
+<a id="__codelineno-1-231" name="__codelineno-1-231" href="#__codelineno-1-231"></a><span class="c1"># alpine.no.proxy=localhost,127.0.0.1</span><span class="w"></span>
+<a id="__codelineno-1-232" name="__codelineno-1-232" href="#__codelineno-1-232"></a>
+<a id="__codelineno-1-233" name="__codelineno-1-233" href="#__codelineno-1-233"></a><span class="c1"># Optional </span><span class="w"></span>
+<a id="__codelineno-1-234" name="__codelineno-1-234" href="#__codelineno-1-234"></a><span class="c1"># HTTP Outbound Connection Timeout Settings. All values are in seconds.</span><span class="w"></span>
+<a id="__codelineno-1-235" name="__codelineno-1-235" href="#__codelineno-1-235"></a><span class="c1"># alpine.http.timeout.connection=30</span><span class="w"></span>
+<a id="__codelineno-1-236" name="__codelineno-1-236" href="#__codelineno-1-236"></a><span class="c1"># alpine.http.timeout.socket=30</span><span class="w"></span>
+<a id="__codelineno-1-237" name="__codelineno-1-237" href="#__codelineno-1-237"></a><span class="c1"># alpine.http.timeout.pool=60</span><span class="w"></span>
+<a id="__codelineno-1-238" name="__codelineno-1-238" href="#__codelineno-1-238"></a>
+<a id="__codelineno-1-239" name="__codelineno-1-239" href="#__codelineno-1-239"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-240" name="__codelineno-1-240" href="#__codelineno-1-240"></a><span class="c1"># Cross-Origin Resource Sharing (CORS) headers to include in REST responses.</span><span class="w"></span>
+<a id="__codelineno-1-241" name="__codelineno-1-241" href="#__codelineno-1-241"></a><span class="c1"># If &#39;alpine.cors.enabled&#39; is true, CORS headers will be sent, if false, no</span><span class="w"></span>
+<a id="__codelineno-1-242" name="__codelineno-1-242" href="#__codelineno-1-242"></a><span class="c1"># CORS headers will be sent.</span><span class="w"></span>
+<a id="__codelineno-1-243" name="__codelineno-1-243" href="#__codelineno-1-243"></a><span class="c1"># See Also: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS</span><span class="w"></span>
+<a id="__codelineno-1-244" name="__codelineno-1-244" href="#__codelineno-1-244"></a><span class="c1"># The following are default values</span><span class="w"></span>
+<a id="__codelineno-1-245" name="__codelineno-1-245" href="#__codelineno-1-245"></a><span class="c1">#alpine.cors.enabled=true</span><span class="w"></span>
+<a id="__codelineno-1-246" name="__codelineno-1-246" href="#__codelineno-1-246"></a><span class="c1">#alpine.cors.allow.origin=*</span><span class="w"></span>
+<a id="__codelineno-1-247" name="__codelineno-1-247" href="#__codelineno-1-247"></a><span class="c1">#alpine.cors.allow.methods=GET, POST, PUT, DELETE, OPTIONS</span><span class="w"></span>
+<a id="__codelineno-1-248" name="__codelineno-1-248" href="#__codelineno-1-248"></a><span class="c1">#alpine.cors.allow.headers=Origin, Content-Type, Authorization, X-Requested-With, Content-Length, Accept, Origin, X-Api-Key, X-Total-Count, *</span><span class="w"></span>
+<a id="__codelineno-1-249" name="__codelineno-1-249" href="#__codelineno-1-249"></a><span class="c1">#alpine.cors.expose.headers=Origin, Content-Type, Authorization, X-Requested-With, Content-Length, Accept, Origin, X-Api-Key, X-Total-Count</span><span class="w"></span>
+<a id="__codelineno-1-250" name="__codelineno-1-250" href="#__codelineno-1-250"></a><span class="c1">#alpine.cors.allow.credentials=true</span><span class="w"></span>
+<a id="__codelineno-1-251" name="__codelineno-1-251" href="#__codelineno-1-251"></a><span class="c1">#alpine.cors.max.age=3600</span><span class="w"></span>
+<a id="__codelineno-1-252" name="__codelineno-1-252" href="#__codelineno-1-252"></a>
+<a id="__codelineno-1-253" name="__codelineno-1-253" href="#__codelineno-1-253"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-254" name="__codelineno-1-254" href="#__codelineno-1-254"></a><span class="c1"># Defines whether Prometheus metrics will be exposed.</span><span class="w"></span>
+<a id="__codelineno-1-255" name="__codelineno-1-255" href="#__codelineno-1-255"></a><span class="c1"># If enabled, metrics will be available via the /metrics endpoint.</span><span class="w"></span>
+<a id="__codelineno-1-256" name="__codelineno-1-256" href="#__codelineno-1-256"></a><span class="c1"># This endpoint is NOT subject to access control. If protection is desired,</span><span class="w"></span>
+<a id="__codelineno-1-257" name="__codelineno-1-257" href="#__codelineno-1-257"></a><span class="c1"># it must be enforced in the reverse proxy using basic auth.</span><span class="w"></span>
+<a id="__codelineno-1-258" name="__codelineno-1-258" href="#__codelineno-1-258"></a><span class="c1"># See also: https://prometheus.io/docs/guides/basic-auth/</span><span class="w"></span>
+<a id="__codelineno-1-259" name="__codelineno-1-259" href="#__codelineno-1-259"></a><span class="na">alpine.metrics.enabled</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+<a id="__codelineno-1-260" name="__codelineno-1-260" href="#__codelineno-1-260"></a>
+<a id="__codelineno-1-261" name="__codelineno-1-261" href="#__codelineno-1-261"></a><span class="c1"># Required</span><span class="w"></span>
+<a id="__codelineno-1-262" name="__codelineno-1-262" href="#__codelineno-1-262"></a><span class="c1"># Defines if OpenID Connect will be used for user authentication.</span><span class="w"></span>
+<a id="__codelineno-1-263" name="__codelineno-1-263" href="#__codelineno-1-263"></a><span class="c1"># If enabled, alpine.oidc.* properties should be set accordingly.</span><span class="w"></span>
+<a id="__codelineno-1-264" name="__codelineno-1-264" href="#__codelineno-1-264"></a><span class="na">alpine.oidc.enabled</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+<a id="__codelineno-1-265" name="__codelineno-1-265" href="#__codelineno-1-265"></a>
+<a id="__codelineno-1-266" name="__codelineno-1-266" href="#__codelineno-1-266"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-267" name="__codelineno-1-267" href="#__codelineno-1-267"></a><span class="c1"># Defines the issuer URL to be used for OpenID Connect.</span><span class="w"></span>
+<a id="__codelineno-1-268" name="__codelineno-1-268" href="#__codelineno-1-268"></a><span class="c1"># This issuer MUST support provider configuration via the /.well-known/openid-configuration endpoint.</span><span class="w"></span>
+<a id="__codelineno-1-269" name="__codelineno-1-269" href="#__codelineno-1-269"></a><span class="c1"># See also:</span><span class="w"></span>
+<a id="__codelineno-1-270" name="__codelineno-1-270" href="#__codelineno-1-270"></a><span class="c1"># - https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata</span><span class="w"></span>
+<a id="__codelineno-1-271" name="__codelineno-1-271" href="#__codelineno-1-271"></a><span class="c1"># - https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig</span><span class="w"></span>
+<a id="__codelineno-1-272" name="__codelineno-1-272" href="#__codelineno-1-272"></a><span class="na">alpine.oidc.issuer</span><span class="o">=</span><span class="w"></span>
+<a id="__codelineno-1-273" name="__codelineno-1-273" href="#__codelineno-1-273"></a>
+<a id="__codelineno-1-274" name="__codelineno-1-274" href="#__codelineno-1-274"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-275" name="__codelineno-1-275" href="#__codelineno-1-275"></a><span class="c1"># Defines the name of the claim that contains the username in the provider&#39;s userinfo endpoint.</span><span class="w"></span>
+<a id="__codelineno-1-276" name="__codelineno-1-276" href="#__codelineno-1-276"></a><span class="c1"># Common claims are &quot;name&quot;, &quot;username&quot;, &quot;preferred_username&quot; or &quot;nickname&quot;.</span><span class="w"></span>
+<a id="__codelineno-1-277" name="__codelineno-1-277" href="#__codelineno-1-277"></a><span class="c1"># See also: https://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse</span><span class="w"></span>
+<a id="__codelineno-1-278" name="__codelineno-1-278" href="#__codelineno-1-278"></a><span class="na">alpine.oidc.username.claim</span><span class="o">=</span><span class="s">name</span><span class="w"></span>
+<a id="__codelineno-1-279" name="__codelineno-1-279" href="#__codelineno-1-279"></a>
+<a id="__codelineno-1-280" name="__codelineno-1-280" href="#__codelineno-1-280"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-281" name="__codelineno-1-281" href="#__codelineno-1-281"></a><span class="c1"># Specifies if mapped OpenID Connect accounts are automatically created upon successful</span><span class="w"></span>
+<a id="__codelineno-1-282" name="__codelineno-1-282" href="#__codelineno-1-282"></a><span class="c1"># authentication. When a user logs in with a valid access token but an account has</span><span class="w"></span>
+<a id="__codelineno-1-283" name="__codelineno-1-283" href="#__codelineno-1-283"></a><span class="c1"># not been previously provisioned, an authentication failure will be returned.</span><span class="w"></span>
+<a id="__codelineno-1-284" name="__codelineno-1-284" href="#__codelineno-1-284"></a><span class="c1"># This allows admins to control specifically which OpenID Connect users can access the</span><span class="w"></span>
+<a id="__codelineno-1-285" name="__codelineno-1-285" href="#__codelineno-1-285"></a><span class="c1"># system and which users cannot. When this value is set to true, a local OpenID Connect</span><span class="w"></span>
+<a id="__codelineno-1-286" name="__codelineno-1-286" href="#__codelineno-1-286"></a><span class="c1"># user will be created and mapped to the OpenID Connect account automatically. This</span><span class="w"></span>
+<a id="__codelineno-1-287" name="__codelineno-1-287" href="#__codelineno-1-287"></a><span class="c1"># automatic provisioning only affects authentication, not authorization.</span><span class="w"></span>
+<a id="__codelineno-1-288" name="__codelineno-1-288" href="#__codelineno-1-288"></a><span class="na">alpine.oidc.user.provisioning</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+<a id="__codelineno-1-289" name="__codelineno-1-289" href="#__codelineno-1-289"></a>
+<a id="__codelineno-1-290" name="__codelineno-1-290" href="#__codelineno-1-290"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-291" name="__codelineno-1-291" href="#__codelineno-1-291"></a><span class="c1"># This option will ensure that team memberships for OpenID Connect users are dynamic and</span><span class="w"></span>
+<a id="__codelineno-1-292" name="__codelineno-1-292" href="#__codelineno-1-292"></a><span class="c1"># synchronized with membership of OpenID Connect groups or assigned roles. When a team is</span><span class="w"></span>
+<a id="__codelineno-1-293" name="__codelineno-1-293" href="#__codelineno-1-293"></a><span class="c1"># mapped to an OpenID Connect group, all local OpenID Connect users will automatically be</span><span class="w"></span>
+<a id="__codelineno-1-294" name="__codelineno-1-294" href="#__codelineno-1-294"></a><span class="c1"># assigned to the team if they are a member of the group the team is mapped to. If the user</span><span class="w"></span>
+<a id="__codelineno-1-295" name="__codelineno-1-295" href="#__codelineno-1-295"></a><span class="c1"># is later removed from the OpenID Connect group, they will also be removed from the team. This</span><span class="w"></span>
+<a id="__codelineno-1-296" name="__codelineno-1-296" href="#__codelineno-1-296"></a><span class="c1"># option provides the ability to dynamically control user permissions via the identity provider.</span><span class="w"></span>
+<a id="__codelineno-1-297" name="__codelineno-1-297" href="#__codelineno-1-297"></a><span class="c1"># Note that team synchronization is only performed during user provisioning and after successful</span><span class="w"></span>
+<a id="__codelineno-1-298" name="__codelineno-1-298" href="#__codelineno-1-298"></a><span class="c1"># authentication.</span><span class="w"></span>
+<a id="__codelineno-1-299" name="__codelineno-1-299" href="#__codelineno-1-299"></a><span class="na">alpine.oidc.team.synchronization</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+<a id="__codelineno-1-300" name="__codelineno-1-300" href="#__codelineno-1-300"></a>
+<a id="__codelineno-1-301" name="__codelineno-1-301" href="#__codelineno-1-301"></a><span class="c1"># Optional</span><span class="w"></span>
+<a id="__codelineno-1-302" name="__codelineno-1-302" href="#__codelineno-1-302"></a><span class="c1"># Defines the name of the claim that contains group memberships or role assignments in the provider&#39;s userinfo endpoint.</span><span class="w"></span>
+<a id="__codelineno-1-303" name="__codelineno-1-303" href="#__codelineno-1-303"></a><span class="c1"># The claim must be an array of strings. Most public identity providers do not support group or role management.</span><span class="w"></span>
+<a id="__codelineno-1-304" name="__codelineno-1-304" href="#__codelineno-1-304"></a><span class="c1"># When using a customizable / on-demand hosted identity provider, name, content, and inclusion in the userinfo endpoint</span><span class="w"></span>
+<a id="__codelineno-1-305" name="__codelineno-1-305" href="#__codelineno-1-305"></a><span class="c1"># will most likely need to be configured.</span><span class="w"></span>
+<a id="__codelineno-1-306" name="__codelineno-1-306" href="#__codelineno-1-306"></a><span class="na">alpine.oidc.teams.claim</span><span class="o">=</span><span class="s">groups</span><span class="w"></span>
+</code></pre></div>
+<h3 id="proxy-configuration">Proxy Configuration</h3>
+<p>Proxy support can be configured in one of two ways, using the proxy settings defined
+in <code>application.properties</code> or through environment variables. By default, the system
+will attempt to read the <code>https_proxy</code>, <code>http_proxy</code> and <code>no_proxy</code> environment variables. If one
+of these are set, Dependency-Track will use them automatically.</p>
+<p><code>no_proxy</code> specifies URLs that should be excluded from proxying.
+This can be a comma-separated list of hostnames, domain names, or a mixture of both.
+If a port number is specified for a URL, only the requests with that port number to that URL will be excluded from proxying.
+<code>no_proxy</code> can also set to be a single asterisk ('*') to match all hosts.</p>
+<p>Dependency-Track supports proxies that require BASIC, DIGEST, and NTLM authentication.</p>
+<h3 id="logging-levels">Logging Levels</h3>
+<p>Logging levels (INFO, WARN, ERROR, DEBUG, TRACE) can be specified by passing the level
+to the <code>dependencyTrack.logging.level</code> system property on startup. For example, the
+following command will start Dependency-Track (embedded) with DEBUG logging:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>java -Xmx4G -DdependencyTrack.logging.level<span class="o">=</span>DEBUG -jar dependency-track-embedded.war
+</code></pre></div>
+<p>For Docker deployments, simply set the <code>LOGGING_LEVEL</code> environment variable to one of
+INFO, WARN, ERROR, DEBUG, or TRACE.</p>
+<h2 id="frontend">Frontend</h2>
+<p>The frontend uses a static <code>config.json</code> file that is dynamically requested and evaluated via AJAX.
+This file resides in <code>&lt;BASE_URL&gt;/static/config.json</code>.</p>
+<h3 id="default-configuration_1">Default configuration</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="w"></span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="c1">// Required</span><span class="w"></span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="c1">// The base URL of the API server.</span><span class="w"></span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="c1">// NOTE:</span><span class="w"></span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="c1">//   * This URL must be reachable by the browsers of your users.</span><span class="w"></span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="c1">//   * The frontend container itself does NOT communicate with the API server directly, it just serves static files.</span><span class="w"></span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="c1">//   * When deploying to dedicated servers, please use the external IP or domain of the API server.</span><span class="w"></span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="nt">&quot;API_BASE_URL&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="c1">// Optional</span><span class="w"></span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="c1">// Defines the issuer URL to be used for OpenID Connect.</span><span class="w"></span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="c1">// See alpine.oidc.issuer property of the backend.</span><span class="w"></span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="nt">&quot;OIDC_ISSUER&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="c1">// Optional</span><span class="w"></span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="c1">// Defines the client ID for OpenID Connect.</span><span class="w"></span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="nt">&quot;OIDC_CLIENT_ID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="c1">// Optional</span><span class="w"></span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="c1">// Defines the scopes to request for OpenID Connect.</span><span class="w"></span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="c1">// See also: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes</span><span class="w"></span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="nt">&quot;OIDC_SCOPE&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openid profile email&quot;</span><span class="p">,</span><span class="w"></span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="c1">// Optional</span><span class="w"></span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="c1">// Specifies the OpenID Connect flow to use.</span><span class="w"></span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="c1">// Values other than &quot;implicit&quot; will result in the Code+PKCE flow to be used.</span><span class="w"></span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="c1">// Usage of the implicit flow is strongly discouraged, but may be necessary when</span><span class="w"></span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">    </span><span class="c1">// the IdP of choice does not support the Code+PKCE flow.</span><span class="w"></span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">    </span><span class="c1">// See also:</span><span class="w"></span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">    </span><span class="c1">//   - https://oauth.net/2/grant-types/implicit/</span><span class="w"></span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">    </span><span class="c1">//   - https://oauth.net/2/pkce/</span><span class="w"></span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">    </span><span class="nt">&quot;OIDC_FLOW&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">    </span><span class="c1">// Optional</span><span class="w"></span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">    </span><span class="c1">// Defines the text of the OpenID Connect login button. </span><span class="w"></span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">    </span><span class="nt">&quot;OIDC_LOGIN_BUTTON_TEXT&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"></span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+<p>For containerized deployments, these settings can be overridden by either:</p>
+<ul>
+<li>mounting a customized <code>config.json</code> to <code>/app/static/config.json</code> inside the container</li>
+<li>providing them as environment variables</li>
+</ul>
+<p>The names of the environment variables are equivalent to their counterparts in <code>config.json</code>.</p>
+<blockquote>
+<p>A mounted <code>config.json</code> takes precedence over environment variables.
+If both are provided, environment variables will be ignored.</p>
+</blockquote>
+
+              
+            </article>
+            
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="../initial-startup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Initial Startup" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Initial Startup
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../database-support/" class="md-footer__link md-footer__link--next" aria-label="Next: Database Support" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Database Support
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; Steve Springett
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+      
+      
+    
+    <a href="https://dependencytrack.org/slack" target="_blank" rel="noopener" title="dependencytrack.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M94.12 315.1c0 25.9-21.16 47.06-47.06 47.06S0 341 0 315.1c0-25.9 21.16-47.06 47.06-47.06h47.06v47.06zm23.72 0c0-25.9 21.16-47.06 47.06-47.06s47.06 21.16 47.06 47.06v117.84c0 25.9-21.16 47.06-47.06 47.06s-47.06-21.16-47.06-47.06V315.1zm47.06-188.98c-25.9 0-47.06-21.16-47.06-47.06S139 32 164.9 32s47.06 21.16 47.06 47.06v47.06H164.9zm0 23.72c25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06H47.06C21.16 243.96 0 222.8 0 196.9s21.16-47.06 47.06-47.06H164.9zm188.98 47.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06h-47.06V196.9zm-23.72 0c0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06V79.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06V196.9zM283.1 385.88c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06v-47.06h47.06zm0-23.72c-25.9 0-47.06-21.16-47.06-47.06 0-25.9 21.16-47.06 47.06-47.06h117.84c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06H283.1z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://github.com/DependencyTrack" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://hub.docker.com/u/dependencytrack" target="_blank" rel="noopener" title="hub.docker.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M349.9 236.3h-66.1v-59.4h66.1v59.4zm0-204.3h-66.1v60.7h66.1V32zm78.2 144.8H362v59.4h66.1v-59.4zm-156.3-72.1h-66.1v60.1h66.1v-60.1zm78.1 0h-66.1v60.1h66.1v-60.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1l-13.3-8.9zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm-78.1-72.1h-66.1v60.1h66.1v-60.1z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/DependencyTrack" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "search.highlight", "search.share"], "search": "../../assets/javascripts/workers/search.b97dbffb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.6c7ad80a.min.js"></script>
+      
+    
+  </body>
+</html>
