@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
 
-pushd docs >/dev/null || exit
-(bundle install --path ./vendor/bundle && bundle exec jekyll build) || true
-popd >/dev/null || exit
+docker run --rm -it -v "$(pwd):/docs" squidfunk/mkdocs-material:latest build

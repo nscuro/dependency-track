@@ -7,17 +7,8 @@ repo_url: https://github.com/DependencyTrack/dependency-track
 
 theme:
   name: material
-  palette:
-  - scheme: default
-    media: "(prefers-color-scheme: light)"
-    toggle:
-      icon: material/brightness-7
-      name: Switch to dark mode
-  - scheme: slate
-    media: "(prefers-color-scheme: dark)"
-    toggle:
-      icon: material/brightness-4
-      name: Switch to light mode
+  favicon: assets/images/favicon.png
+  logo: assets/images/logo.png
   features:
   - navigation.instant
   - navigation.tracking
@@ -40,10 +31,21 @@ extra:
   - icon: fontawesome/brands/twitter
     link: https://twitter.com/DependencyTrack
 
+extra_css:
+- stylesheets/extra.css
+
 markdown_extensions:
+- admonition
+- attr_list
+- pymdownx.details
+- pymdownx.emoji:
+    emoji_index: !!python/name:materialx.emoji.twemoji
+    emoji_generator: !!python/name:materialx.emoji.to_svg
 - pymdownx.highlight:
     anchor_linenums: true
 - pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
 - tables
 
 plugins:
@@ -51,4 +53,13 @@ plugins:
 
 nav:
 - Home: index.md
-
+- Getting Started:
+  - Distributions: getting-started/distributions.md
+  - Deployment:
+    - Docker: getting-started/deployment/docker.md
+    - Kubernetes: getting-started/deployment/kubernetes.md
+    - Executable WAR: getting-started/deployment/exewar.md
+  - Initial Startup: getting-started/initial-startup.md
+  - Configuration: getting-started/configuration.md
+  - Database Support: getting-started/database-support.md
+  - Monitoring: getting-started/monitoring.md

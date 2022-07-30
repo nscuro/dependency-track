@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
 
-pushd docs >/dev/null || exit
-(bundle install --path ./vendor/bundle && bundle exec jekyll serve) || true
-popd >/dev/null || exit
+docker run --rm -it -p '127.0.0.1:8000:8000' -v "$(pwd):/docs:ro" squidfunk/mkdocs-material:latest
