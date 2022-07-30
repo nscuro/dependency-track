@@ -1,0 +1,36 @@
+name: Deploy Documentation
+
+on:
+  push:
+    paths:
+    - "docs/**"
+    - mkdocs.yml
+    branches:
+    - mkdocs
+
+jobs:
+  deploy-docs:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3.0.2
+      with:
+        fetch-depth: 0
+    - name: Setup Python
+      uses: actions/setup-python@v4.1.0
+      with:
+        python-version: "3.x"
+    - name: Install Requirements
+      run: pip install mkdocs-material mike
+    - name: Determine Project Version
+      id: determine_version
+      run: |-
+        VERSION=`yq -p=xml '.project.version' pom.xml`
+        echo "::set-output name=version::${VERSION}"
+    - name: Configure Git User
+      run: |-
+        git config --global user.name nscuro
+        git config --global user.email 5693141+nscuro@users.noreply.github.com
+    - name: Deploy
+      run: mike deploy --push ${{ steps.determine_version.outputs.version }}
