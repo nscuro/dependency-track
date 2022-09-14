@@ -29,6 +29,7 @@ import org.dependencytrack.event.BomUploadEvent;
 import org.dependencytrack.event.NewVulnerableDependencyAnalysisEvent;
 import org.dependencytrack.event.RepositoryMetaEvent;
 import org.dependencytrack.event.VulnerabilityAnalysisEvent;
+import org.dependencytrack.kafka.VulnerabilityAnalysisEventProducer;
 import org.dependencytrack.model.Bom;
 import org.dependencytrack.model.Classifier;
 import org.dependencytrack.model.Component;
@@ -147,6 +148,7 @@ public class BomUploadProcessingTask implements Subscriber {
                 // the vulnerability analysis hasn't taken place yet).
                 final List<Component> detachedFlattenedComponent = qm.detach(flattenedComponents);
                 final Project detachedProject = qm.detach(Project.class, project.getId());
+                new VulnerabilityAnalysisEventProducer().publish(detachedProject);
                 final VulnerabilityAnalysisEvent vae = new VulnerabilityAnalysisEvent(detachedFlattenedComponent).project(detachedProject);
                 vae.setChainIdentifier(event.getChainIdentifier());
                 if (!newComponents.isEmpty()) {
@@ -154,7 +156,7 @@ public class BomUploadProcessingTask implements Subscriber {
                     // vulnerability analysis completed.
                     vae.onSuccess(new NewVulnerableDependencyAnalysisEvent(newComponents));
                 }
-                Event.dispatch(vae);
+                // Event.dispatch(vae);
                 LOGGER.info("Processed " + flattenedComponents.size() + " components and " + flattenedServices.size() + " services uploaded to project " + event.getProjectUuid());
                 Notification.dispatch(new Notification()
                         .scope(NotificationScope.PORTFOLIO)
