@@ -90,6 +90,7 @@
         <lib.lucene.version>8.11.2</lib.lucene.version>
         <lib.packageurl.version>1.4.1</lib.packageurl.version>
         <lib.pebble.version>3.1.6</lib.pebble.version>
+        <lib.resilience4j.version>1.7.1</lib.resilience4j.version>
         <lib.unirest.version>3.13.11</lib.unirest.version>
         <lib.vulndb-data-mirror.version>1.0.1</lib.vulndb-data-mirror.version>
         <!-- JDBC Drivers -->
@@ -231,6 +232,11 @@
             <version>${lib.unirest.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.konghq</groupId>
+            <artifactId>unirest-objectmapper-jackson</artifactId>
+            <version>${lib.unirest.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
             <artifactId>woodstox-core</artifactId>
             <version>6.3.1</version>
@@ -268,6 +274,12 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>1.21</version>
+        </dependency>
+        <!-- resilience4j -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-retry</artifactId>
+            <version>${lib.resilience4j.version}</version>
         </dependency>
         <!-- Test Dependencies -->
         <dependency>

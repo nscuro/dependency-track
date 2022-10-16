@@ -20,12 +20,15 @@ package org.dependencytrack.common;
 
 import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
+import kong.unirest.jackson.JacksonObjectMapper;
 
 public final class UnirestFactory {
 
     private static final UnirestInstance UNIREST_INSTANCE = Unirest.primaryInstance();
     static {
-        UNIREST_INSTANCE.config().httpClient(ManagedHttpClientFactory.newManagedHttpClient().getHttpClient());
+        UNIREST_INSTANCE.config()
+                .httpClient(ManagedHttpClientFactory.newManagedHttpClient().getHttpClient())
+                .setObjectMapper(new JacksonObjectMapper());
     }
 
     private UnirestFactory() {
