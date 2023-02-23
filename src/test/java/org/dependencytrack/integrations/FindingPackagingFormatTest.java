@@ -19,37 +19,109 @@
 package org.dependencytrack.integrations;
 
 import alpine.Config;
+import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.dependencytrack.PersistenceCapableTest;
+import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Project;
-import org.json.JSONObject;
-import org.junit.Assert;
+import org.dependencytrack.model.Severity;
+import org.dependencytrack.model.Vulnerability;
+import org.dependencytrack.model.VulnerabilityAlias;
+import org.dependencytrack.tasks.scanners.AnalyzerIdentity;
 import org.junit.Test;
 
-import java.util.Collections;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 public class FindingPackagingFormatTest extends PersistenceCapableTest {
 
     @Test
-    @SuppressWarnings("unchecked")
     public void wrapperTest() {
-        Project project = qm.createProject(
-                "Test", "Sample project", "1.0", null, null, null, true, false);
-        FindingPackagingFormat fpf = new FindingPackagingFormat(
-                project.getUuid(),
-                Collections.EMPTY_LIST
-        );
-        JSONObject root = fpf.getDocument();
+        final Project project = qm.createProject("Test", "Sample project", "1.0", null, null, null, true, false);
 
-        JSONObject meta = root.getJSONObject("meta");
-        Assert.assertEquals(Config.getInstance().getApplicationName(), meta.getString("application"));
-        Assert.assertEquals(Config.getInstance().getApplicationVersion(), meta.getString("version"));
-        Assert.assertNotNull(meta.getString("timestamp"));
+        var componentA = new Component();
+        componentA.setProject(project);
+        componentA.setName("acme-lib-a");
+        componentA.setVersion("1.2.3");
+        componentA = qm.createComponent(componentA, false);
 
-        JSONObject pjson = root.getJSONObject("project");
-        Assert.assertEquals(project.getName(), pjson.getString("name"));
-        Assert.assertEquals(project.getDescription(), pjson.getString("description"));
-        Assert.assertEquals(project.getVersion(), pjson.getString("version"));
+        var componentB = new Component();
+        componentB.setProject(project);
+        componentB.setName("acme-lib-b");
+        componentB.setVersion("3.2.1");
+        qm.createComponent(componentB, false);
 
-        Assert.assertEquals("1.1", root.getString("version"));
+        var vuln = new Vulnerability();
+        vuln.setVulnId("INTERNAL-001");
+        vuln.setSource(Vulnerability.Source.INTERNAL);
+        vuln.setSeverity(Severity.HIGH);
+        vuln = qm.createVulnerability(vuln, false);
+
+        var vulnAlias = new VulnerabilityAlias();
+        vulnAlias.setInternalId("INTERNAL-001");
+        vulnAlias.setCveId("CVE-123");
+        qm.synchronizeVulnerabilityAlias(vulnAlias);
+
+        qm.addVulnerability(vuln, componentA, AnalyzerIdentity.INTERNAL_ANALYZER);
+
+        final var fpf = new FindingPackagingFormat(project.getUuid(), qm.getFindings(project));
+
+        assertThatJson(fpf.getDocument().toString())
+                .withMatcher("appVersion", equalTo(Config.getInstance().getApplicationVersion()))
+                .withMatcher("projectUuid", equalTo(project.getUuid().toString()))
+                .withMatcher("componentUuidA", equalTo(componentA.getUuid().toString()))
+                .withMatcher("vulnUuid", equalTo(vuln.getUuid().toString()))
+                .withMatcher("matrix", equalTo("%s:%s:%s".formatted(project.getUuid(), componentA.getUuid(), vuln.getUuid())))
+                .isEqualTo(JsonAssertions.json("""
+                        {
+                          "version": "1.1",
+                          "meta": {
+                            "application": "Dependency-Track",
+                            "version": "${json-unit.matches:appVersion}",
+                            "timestamp": "${json-unit.any-string}"
+                          },
+                          "project": {
+                            "uuid": "${json-unit.matches:projectUuid}",
+                            "name": "Test",
+                            "version": "1.0",
+                            "description": "Sample project"
+                          },
+                          "findings": [
+                            {
+                              "component": {
+                                "uuid": "${json-unit.matches:componentUuidA}",
+                                "name": "acme-lib-a",
+                                "version": "1.2.3",
+                                "project": "${json-unit.matches:projectUuid}"
+                              },
+                              "attribution": {
+                                "analyzerIdentity": "INTERNAL_ANALYZER",
+                                "attributedOn": "${json-unit.any-string}"
+                              },
+                              "vulnerability": {
+                                "uuid": "${json-unit.matches:vulnUuid}",
+                                "vulnId": "INTERNAL-001",
+                                "source": "INTERNAL",
+                                "aliases": [
+                                  {
+                                    "id": "${json-unit.any-number}",
+                                    "allBySource": {
+                                      "INTERNAL": "INTERNAL-001",
+                                      "NVD": "CVE-123"
+                                    },
+                                    "cveId": "CVE-123",
+                                    "internalId": "INTERNAL-001"
+                                  }
+                                ],
+                                "severity": "HIGH",
+                                "severityRank": 1
+                              },
+                              "analysis": {
+                                "isSuppressed": false
+                              },
+                              "matrix": "${json-unit.matches:matrix}"
+                            }
+                          ]
+                        }
+                        """));
     }
 }
