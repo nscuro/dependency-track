@@ -32,6 +32,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.Optional;
 
 /**
  * Helper class wrapping a Jackson {@link ObjectMapper} and providing various utility methods.
@@ -71,12 +72,16 @@ public final class Jackson {
         return nodeFactory().objectNode();
     }
 
-    public static JsonNode readString(final String string) throws IOException {
+    public static JsonNode readString(final String string) {
         return readString(string, JsonNode.class);
     }
 
-    public static <T> T readString(final String string, Class<T> clazz) throws IOException {
-        return objectReader().readValue(string, clazz);
+    public static <T> T readString(final String string, Class<T> clazz) {
+        try {
+            return objectReader().readValue(string, clazz);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static JsonNode readHttpResponse(final CloseableHttpResponse response) throws IOException {
@@ -91,11 +96,17 @@ public final class Jackson {
 
     public static ArrayNode asArray(final JsonNode jsonNode, final String fieldName) {
         final JsonNode arrayNode = jsonNode.get(fieldName);
-        if (!arrayNode.isArray()) {
+        if (arrayNode == null || !arrayNode.isArray()) {
             return nodeFactory().arrayNode();
         }
 
         return (ArrayNode) arrayNode;
+    }
+
+    public static String optString(final JsonNode jsonNode, final String fieldName) {
+        return Optional.ofNullable(jsonNode.get(fieldName))
+                .map(JsonNode::asText)
+                .orElse(null);
     }
 
     /**

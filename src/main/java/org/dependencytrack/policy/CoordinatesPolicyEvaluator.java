@@ -19,16 +19,18 @@
 package org.dependencytrack.policy;
 
 import alpine.common.logging.Logger;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
+import org.dependencytrack.common.Jackson;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Coordinates;
 import org.dependencytrack.model.Policy;
 import org.dependencytrack.model.PolicyCondition;
 import org.dependencytrack.util.ComponentVersion;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -148,11 +150,11 @@ public class CoordinatesPolicyEvaluator extends AbstractPolicyEvaluator {
         if (condition.getValue() == null) {
             return new Coordinates(null, null, null);
         }
-        final JSONObject def = new JSONObject(condition.getValue());
+        final JsonNode def = Jackson.readString(condition.getValue());
         return new Coordinates(
-                def.optString("group", null),
-                def.optString("name", null),
-                def.optString("version", null)
+                Optional.ofNullable(def.get("group")).map(JsonNode::asText).orElse(null),
+                Optional.ofNullable(def.get("name")).map(JsonNode::asText).orElse(null),
+                Optional.ofNullable(def.get("version")).map(JsonNode::asText).orElse(null)
         );
     }
 
