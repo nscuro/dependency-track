@@ -20,6 +20,7 @@ package org.dependencytrack.integrations.defectdojo;
 
 import alpine.common.logging.Logger;
 import alpine.model.ConfigProperty;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.dependencytrack.integrations.AbstractIntegrationPoint;
 import org.dependencytrack.integrations.FindingPackagingFormat;
 import org.dependencytrack.integrations.ProjectFindingUploader;
@@ -30,7 +31,6 @@ import org.dependencytrack.model.ProjectProperty;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.dependencytrack.model.ConfigPropertyConstants.DEFECTDOJO_API_KEY;
@@ -89,8 +89,8 @@ public class DefectDojoUploader extends AbstractIntegrationPoint implements Proj
         final ProjectProperty engagementId = qm.getProjectProperty(project, DEFECTDOJO_ENABLED.getGroupName(), ENGAGEMENTID_PROPERTY);
         try {
             final DefectDojoClient client = new DefectDojoClient(this, new URL(defectDojoUrl.getPropertyValue()));
-            final ArrayList testsIds = client.getDojoTestIds(apiKey.getPropertyValue(), engagementId.getPropertyValue());
-            final String testId = client.getDojoTestId(engagementId.getPropertyValue(), testsIds);
+            final ArrayNode tests = client.getDojoTestIds(apiKey.getPropertyValue(), engagementId.getPropertyValue());
+            final String testId = client.getDojoTestId(engagementId.getPropertyValue(), tests);
             if (isReimportConfigured(project) || Boolean.parseBoolean(globalReimportEnabled.getPropertyValue())) {
                 LOGGER.debug("Found existing test Id: " + testId);
                 if (testId.equals("")) {

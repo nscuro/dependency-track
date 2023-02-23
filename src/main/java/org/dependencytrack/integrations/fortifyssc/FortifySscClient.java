@@ -19,6 +19,8 @@
 package org.dependencytrack.integrations.fortifyssc;
 
 import alpine.common.logging.Logger;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -28,9 +30,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.HttpClientPool;
-import org.json.JSONObject;
+import org.dependencytrack.common.Jackson;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +54,7 @@ public class FortifySscClient {
     public String generateOneTimeUploadToken(final String citoken) {
         LOGGER.debug("Generating one-time upload token");
         var request = new HttpPost(baseURL + "/api/v1/fileTokens");
-        final JSONObject payload = new JSONObject().put("fileTokenType", "UPLOAD");
+        final ObjectNode payload = Jackson.newObject().put("fileTokenType", "UPLOAD");
         request.addHeader("Content-Type", "application/json");
         request.addHeader("Authorization", "FortifyToken " + Base64.getEncoder().encodeToString(citoken.getBytes(StandardCharsets.UTF_8)));
         try {
@@ -61,10 +62,9 @@ public class FortifySscClient {
             try (CloseableHttpResponse response = HttpClientPool.getClient().execute(request)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
                     if (response.getEntity() != null) {
-                        String responseString = EntityUtils.toString(response.getEntity());
-                        final JSONObject root = new JSONObject(responseString);
+                        final JsonNode root = Jackson.readHttpResponse(response);
                         LOGGER.debug("One-time upload token retrieved");
-                        return root.getJSONObject("data").getString("token");
+                        return root.get("data").get("token").asText();
                     }
                 } else {
                     uploader.handleUnexpectedHttpResponse(LOGGER, request.getURI().toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());

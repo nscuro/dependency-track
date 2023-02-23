@@ -19,6 +19,8 @@
 package org.dependencytrack.integrations.defectdojo;
 
 import alpine.common.logging.Logger;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -30,17 +32,14 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.HttpClientPool;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.dependencytrack.common.Jackson;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class DefectDojoClient {
@@ -87,7 +86,7 @@ public class DefectDojoClient {
     }
 
     // Pulling DefectDojo 'tests' API endpoint with engagementID filter on, and retrieve a list of existing tests
-    public ArrayList getDojoTestIds(final String token, final String eid) {
+    public ArrayNode getDojoTestIds(final String token, final String eid) {
         LOGGER.debug("Pulling DefectDojo Tests API ...");
         String testsUri = "/api/v2/tests/";
         LOGGER.debug("Make the first pagination call");
@@ -101,11 +100,9 @@ public class DefectDojoClient {
             try (CloseableHttpResponse response = HttpClientPool.getClient().execute(request)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     if (response.getEntity() != null) {
-                        String stringResponse = EntityUtils.toString(response.getEntity());
-                        JSONObject dojoObj = new JSONObject(stringResponse);
-                        JSONArray dojoArray = dojoObj.getJSONArray("results");
-                        ArrayList dojoTests = jsonToList(dojoArray);
-                        String nextUrl = "";
+                        JsonNode dojoObj = Jackson.readHttpResponse(response);
+                        final ArrayNode dojoArray = Jackson.asArray(dojoObj, "results");
+                        String nextUrl;
                         while (dojoObj.get("next") != null) {
                             nextUrl = dojoObj.get("next").toString();
                             LOGGER.debug("Making the subsequent pagination call on " + nextUrl);
@@ -115,14 +112,12 @@ public class DefectDojoClient {
                             request.addHeader("Authorization", "Token " + token);
                             try (CloseableHttpResponse response1 = HttpClientPool.getClient().execute(request)) {
                                 nextUrl = dojoObj.get("next").toString();
-                                stringResponse = EntityUtils.toString(response1.getEntity());
+                                dojoObj = Jackson.readHttpResponse(response1);
+                                dojoArray.addAll(Jackson.asArray(dojoObj, "results"));
                             }
-                            dojoObj = new JSONObject(stringResponse);
-                            dojoArray = dojoObj.getJSONArray("results");
-                            dojoTests.addAll(jsonToList(dojoArray));
                         }
                         LOGGER.debug("Successfully retrieved the test list ");
-                        return dojoTests;
+                        return dojoArray;
                     }
                 } else {
                     LOGGER.warn("DefectDojo Client did not receive expected response while attempting to retrieve tests list "
@@ -132,31 +127,19 @@ public class DefectDojoClient {
         } catch (IOException | URISyntaxException ex) {
             uploader.handleException(LOGGER, ex);
         }
-        return new ArrayList<>();
+        return Jackson.newArray();
     }
 
     // Given the engagement id and scan type, search for existing test id
-    public String getDojoTestId(final String engagementID, final ArrayList dojoTests) {
+    public String getDojoTestId(final String engagementID, final ArrayNode dojoTests) {
         for (int i = 0; i < dojoTests.size(); i++) {
-            String s = dojoTests.get(i).toString();
-            JSONObject dojoTest = new JSONObject(s);
-            if (dojoTest.get("engagement").toString().equals(engagementID) &&
-                    dojoTest.get("scan_type").toString().equals("Dependency Track Finding Packaging Format (FPF) Export")) {
-                return dojoTest.get("id").toString();
+            final JsonNode dojoTest = dojoTests.get(i);
+            if (dojoTest.get("engagement").asText().equals(engagementID) &&
+                    dojoTest.get("scan_type").asText().equals("Dependency Track Finding Packaging Format (FPF) Export")) {
+                return dojoTest.get("id").asText();
             }
         }
         return "";
-    }
-
-    // JSONArray to ArrayList simple converter
-    public ArrayList<String> jsonToList(final JSONArray jsonArray) {
-        ArrayList<String> list = new ArrayList<String>();
-        if (jsonArray != null) {
-            for (int i = 0; i < jsonArray.length(); i++) {
-                list.add(jsonArray.get(i).toString());
-            }
-        }
-        return list;
     }
 
     /*
