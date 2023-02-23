@@ -18,6 +18,8 @@
  */
 package org.dependencytrack.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -29,6 +31,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 
 /**
  * Helper class wrapping a Jackson {@link ObjectMapper} and providing various utility methods.
@@ -37,7 +40,13 @@ import java.io.InputStream;
  */
 public final class Jackson {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER;
+
+    static {
+        OBJECT_MAPPER = new ObjectMapper()
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .setDateFormat(new SimpleDateFormat("HH:mm:ss.SSSZ"));
+    }
 
     private Jackson() {
     }
@@ -87,6 +96,21 @@ public final class Jackson {
         }
 
         return (ArrayNode) arrayNode;
+    }
+
+    /**
+     * An alternative to {@link JsonNode#toString()} that makes use of the customized {@link ObjectMapper}.
+     *
+     * @param value The value to serialize
+     * @return The serialized valued
+     * @throws RuntimeException When serialization failed
+     */
+    public static <T extends JsonNode> String toString(final T value) {
+        try {
+            return objectWriter().writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
