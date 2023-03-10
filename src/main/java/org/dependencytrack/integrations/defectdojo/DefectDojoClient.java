@@ -18,9 +18,12 @@
  */
 package org.dependencytrack.integrations.defectdojo;
 
-import alpine.common.logging.Logger;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -34,13 +37,9 @@ import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.dependencytrack.common.HttpClientPool;
 import org.dependencytrack.common.Jackson;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import alpine.common.logging.Logger;
 
 public class DefectDojoClient {
 
@@ -99,21 +98,21 @@ public class DefectDojoClient {
             request.addHeader("Authorization", "Token " + token);
             try (CloseableHttpResponse response = HttpClientPool.getClient().execute(request)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    if (response.getEntity() != null) {
-                        JsonNode dojoObj = Jackson.readHttpResponse(response);
-                        final ArrayNode dojoArray = Jackson.asArray(dojoObj, "results");
+                    JsonNode jsonObject = Jackson.readHttpResponse(response);
+                    if (jsonObject != null) {
+                        final ArrayNode dojoArray = Jackson.asArray(jsonObject, "results");
                         String nextUrl;
-                        while (dojoObj.get("next") != null) {
-                            nextUrl = dojoObj.get("next").toString();
+                        while (jsonObject.get("next") != null) {
+                            nextUrl = jsonObject.get("next").toString();
                             LOGGER.debug("Making the subsequent pagination call on " + nextUrl);
                             uriBuilder = new URIBuilder(nextUrl);
                             request = new HttpGet(uriBuilder.build().toString());
                             request.addHeader("accept", "application/json");
                             request.addHeader("Authorization", "Token " + token);
                             try (CloseableHttpResponse response1 = HttpClientPool.getClient().execute(request)) {
-                                nextUrl = dojoObj.get("next").toString();
-                                dojoObj = Jackson.readHttpResponse(response1);
-                                dojoArray.addAll(Jackson.asArray(dojoObj, "results"));
+                                nextUrl = jsonObject.get("next").toString();
+                                jsonObject = Jackson.readHttpResponse(response1);
+                                dojoArray.addAll(Jackson.asArray(jsonObject, "results"));
                             }
                         }
                         LOGGER.debug("Successfully retrieved the test list ");

@@ -18,22 +18,20 @@
  */
 package org.dependencytrack.tasks.scanners;
 
-import alpine.Config;
-import alpine.common.logging.Logger;
-import alpine.common.metrics.Metrics;
-import alpine.common.util.UrlUtil;
-import alpine.event.framework.Event;
-import alpine.event.framework.LoggableUncaughtExceptionHandler;
-import alpine.event.framework.Subscriber;
-import alpine.model.ConfigProperty;
-import alpine.notification.Notification;
-import alpine.notification.NotificationLevel;
-import alpine.security.crypto.DataEncryption;
-import com.github.packageurl.PackageURL;
-import io.github.resilience4j.micrometer.tagged.TaggedRetryMetrics;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import io.github.resilience4j.retry.RetryRegistry;
+import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.http.Header;
@@ -43,9 +41,9 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.ConfigKey;
 import org.dependencytrack.common.HttpClientPool;
+import org.dependencytrack.common.Jackson;
 import org.dependencytrack.common.ManagedHttpClientFactory;
 import org.dependencytrack.event.IndexEvent;
 import org.dependencytrack.event.SnykAnalysisEvent;
@@ -60,24 +58,24 @@ import org.dependencytrack.parser.snyk.model.SnykError;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.util.NotificationUtil;
 import org.dependencytrack.util.RoundRobinAccessor;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.packageurl.PackageURL;
+import alpine.Config;
+import alpine.common.logging.Logger;
+import alpine.common.metrics.Metrics;
+import alpine.common.util.UrlUtil;
+import alpine.event.framework.Event;
+import alpine.event.framework.LoggableUncaughtExceptionHandler;
+import alpine.event.framework.Subscriber;
+import alpine.model.ConfigProperty;
+import alpine.notification.Notification;
+import alpine.notification.NotificationLevel;
+import alpine.security.crypto.DataEncryption;
+import io.github.resilience4j.micrometer.tagged.TaggedRetryMetrics;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 
 /**
  * Subscriber task that performs an analysis of component using Snyk vulnerability REST API.
@@ -312,13 +310,11 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
                     apiVersionSunset = null;
                 }
                 if (response.getStatusLine().getStatusCode() >= HttpStatus.SC_OK && response.getStatusLine().getStatusCode() < HttpStatus.SC_MULTIPLE_CHOICES) {
-                    String responseString = EntityUtils.toString(response.getEntity());
-                    JSONObject responseJson = new JSONObject(responseString);
-                    handle(component, responseJson);
+                    JsonNode jsonObject = Jackson.readHttpResponse(response);
+                    handle(component, jsonObject);
                 } else if (response.getEntity() != null) {
-                    String responseString = EntityUtils.toString(response.getEntity());
-                    JSONObject responseJson = new JSONObject(responseString);
-                    final List<SnykError> errors = new SnykParser().parseErrors(responseJson);
+                    JsonNode jsonObject = Jackson.readHttpResponse(response);
+                    final List<SnykError> errors = new SnykParser().parseErrors(jsonObject);
                     if (!errors.isEmpty()) {
                         LOGGER.error("Analysis of component %s failed with HTTP status %d: \n%s"
                                 .formatted(component.getPurl(), response.getStatusLine().getStatusCode(), errors.stream()
@@ -336,20 +332,20 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
         }
     }
 
-    private void handle(final Component component, final JSONObject object) {
+    private void handle(final Component component, final JsonNode object) {
         try (QueryManager qm = new QueryManager()) {
             String purl = null;
-            final JSONObject metaInfo = object.optJSONObject("meta");
+            final JsonNode metaInfo = Jackson.optNode(object, "meta");
             if (metaInfo != null) {
-                purl = metaInfo.optJSONObject("package").optString("url");
+                purl = Jackson.optString(Jackson.optNode(metaInfo, "package"), "url");
                 if (purl == null) {
                     purl = component.getPurlCoordinates().toString();
                 }
             }
-            final JSONArray data = object.optJSONArray("data");
+            final ArrayNode data = Jackson.optArray(object, "data");
             if (data != null && !data.isEmpty()) {
                 final var snykParser = new SnykParser();
-                for (int count = 0; count < data.length(); count++) {
+                for (int count = 0; count < data.size(); count++) {
                     Vulnerability synchronizedVulnerability = snykParser.parse(data, qm, purl, count);
                     addVulnerabilityToCache(component, synchronizedVulnerability);
                     final Component componentPersisted = qm.getObjectByUuid(Component.class, component.getUuid());

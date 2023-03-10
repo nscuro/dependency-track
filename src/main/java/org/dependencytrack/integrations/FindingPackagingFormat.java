@@ -18,21 +18,18 @@
  */
 package org.dependencytrack.integrations;
 
-import alpine.model.About;
-import alpine.model.ConfigProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.dependencytrack.model.ConfigPropertyConstants.GENERAL_BASE_URL;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import org.dependencytrack.common.Jackson;
 import org.dependencytrack.model.Finding;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.util.DateUtil;
-
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import static org.dependencytrack.model.ConfigPropertyConstants.GENERAL_BASE_URL;
+import com.fasterxml.jackson.databind.JsonNode;
+import alpine.model.About;
+import alpine.model.ConfigProperty;
 
 public class FindingPackagingFormat {
 
@@ -74,7 +71,7 @@ public class FindingPackagingFormat {
                 This is useful for file-based parsing systems that needs to be able to
                 identify what type of file it is, and what type of system generated it.
              */
-            final ObjectNode meta = Jackson.newObject();
+            final var meta = Jackson.newObject();
             meta.put(FIELD_APPLICATION, about.getApplication());
             meta.put(FIELD_VERSION, about.getVersion());
             meta.put(FIELD_TIMESTAMP, DateUtil.toISO8601(new Date()));
@@ -88,7 +85,7 @@ public class FindingPackagingFormat {
                 well as not have to perform additional queries back to Dependency-Track
                 to discover basic project information.
              */
-            final ObjectNode projectJson = Jackson.newObject();
+            final var projectJson = Jackson.newObject();
             projectJson.put(FIELD_UUID, project.getUuid().toString());
             projectJson.put(FIELD_NAME, project.getName());
             if (project.getVersion() != null) {
@@ -108,7 +105,7 @@ public class FindingPackagingFormat {
                 Add the meta and project objects along with the findings array
                 to a root json object and return.
              */
-            final ObjectNode root = Jackson.newObject();
+            final var root = Jackson.newObject();
             root.put(FIELD_VERSION, FPF_VERSION);
             root.set(FIELD_META, meta);
             root.set(FIELD_PROJECT, projectJson);

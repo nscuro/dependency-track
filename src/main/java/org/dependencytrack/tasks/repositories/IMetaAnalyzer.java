@@ -18,9 +18,9 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import com.github.packageurl.PackageURL;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.RepositoryType;
+import com.github.packageurl.PackageURL;
 
 /**
  * Interface that defines Repository Meta Analyzers.

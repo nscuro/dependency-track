@@ -18,35 +18,11 @@
  */
 package org.dependencytrack.tasks;
 
-import alpine.common.logging.Logger;
-import alpine.event.framework.Event;
-import alpine.event.framework.LoggableSubscriber;
-import alpine.model.ConfigProperty;
-import com.github.packageurl.MalformedPackageURLException;
-import com.github.packageurl.PackageURL;
-import org.apache.http.HttpStatus;
-import org.json.JSONObject;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.dependencytrack.common.HttpClientPool;
-import org.dependencytrack.event.IndexEvent;
-import org.dependencytrack.event.OsvMirrorEvent;
-import org.dependencytrack.model.ConfigPropertyConstants;
-import org.dependencytrack.model.Cwe;
-import org.dependencytrack.model.Severity;
-import org.dependencytrack.model.Vulnerability;
-import org.dependencytrack.model.VulnerabilityAlias;
-import org.dependencytrack.model.VulnerableSoftware;
-import org.dependencytrack.parser.common.resolver.CweResolver;
-import org.dependencytrack.parser.osv.OsvAdvisoryParser;
-import org.dependencytrack.parser.osv.model.OsvAdvisory;
-import org.dependencytrack.parser.osv.model.OsvAffectedPackage;
-import org.dependencytrack.persistence.QueryManager;
-import us.springett.cvss.Cvss;
-import us.springett.cvss.Score;
-
+import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GOOGLE_OSV_BASE_URL;
+import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GOOGLE_OSV_ENABLED;
+import static org.dependencytrack.model.Severity.getSeverityByLevel;
+import static org.dependencytrack.util.VulnerabilityUtil.normalizedCvssV2Score;
+import static org.dependencytrack.util.VulnerabilityUtil.normalizedCvssV3Score;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,12 +40,35 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GOOGLE_OSV_BASE_URL;
-import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GOOGLE_OSV_ENABLED;
-import static org.dependencytrack.model.Severity.getSeverityByLevel;
-import static org.dependencytrack.util.VulnerabilityUtil.normalizedCvssV2Score;
-import static org.dependencytrack.util.VulnerabilityUtil.normalizedCvssV3Score;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.dependencytrack.common.HttpClientPool;
+import org.dependencytrack.common.Jackson;
+import org.dependencytrack.event.IndexEvent;
+import org.dependencytrack.event.OsvMirrorEvent;
+import org.dependencytrack.model.ConfigPropertyConstants;
+import org.dependencytrack.model.Cwe;
+import org.dependencytrack.model.Severity;
+import org.dependencytrack.model.Vulnerability;
+import org.dependencytrack.model.VulnerabilityAlias;
+import org.dependencytrack.model.VulnerableSoftware;
+import org.dependencytrack.parser.common.resolver.CweResolver;
+import org.dependencytrack.parser.osv.OsvAdvisoryParser;
+import org.dependencytrack.parser.osv.model.OsvAdvisory;
+import org.dependencytrack.parser.osv.model.OsvAffectedPackage;
+import org.dependencytrack.persistence.QueryManager;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
+import alpine.event.framework.Event;
+import alpine.event.framework.LoggableSubscriber;
+import alpine.model.ConfigProperty;
+import us.springett.cvss.Cvss;
+import us.springett.cvss.Score;
 
 public class OsvDownloadTask implements LoggableSubscriber {
 
@@ -141,7 +140,7 @@ public class OsvDownloadTask implements LoggableSubscriber {
             while ((line = reader.readLine()) != null) {
                 out.append(line);
             }
-            JSONObject json = new JSONObject(out.toString());
+            JsonNode json = Jackson.readString(out.toString());
             final OsvAdvisory osvAdvisory = parser.parse(json);
             if (osvAdvisory != null) {
                 updateDatasource(osvAdvisory);

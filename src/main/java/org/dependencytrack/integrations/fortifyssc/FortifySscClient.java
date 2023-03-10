@@ -18,9 +18,12 @@
  */
 package org.dependencytrack.integrations.fortifyssc;
 
-import alpine.common.logging.Logger;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -32,13 +35,8 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.dependencytrack.common.HttpClientPool;
 import org.dependencytrack.common.Jackson;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import com.fasterxml.jackson.databind.JsonNode;
+import alpine.common.logging.Logger;
 
 public class FortifySscClient {
 
@@ -54,17 +52,17 @@ public class FortifySscClient {
     public String generateOneTimeUploadToken(final String citoken) {
         LOGGER.debug("Generating one-time upload token");
         var request = new HttpPost(baseURL + "/api/v1/fileTokens");
-        final ObjectNode payload = Jackson.newObject().put("fileTokenType", "UPLOAD");
+        final var payload = Jackson.newObject().put("fileTokenType", "UPLOAD");
         request.addHeader("Content-Type", "application/json");
         request.addHeader("Authorization", "FortifyToken " + Base64.getEncoder().encodeToString(citoken.getBytes(StandardCharsets.UTF_8)));
         try {
             request.setEntity(new StringEntity(payload.toString()));
             try (CloseableHttpResponse response = HttpClientPool.getClient().execute(request)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
-                    if (response.getEntity() != null) {
-                        final JsonNode root = Jackson.readHttpResponse(response);
+                    final JsonNode jsonObject = Jackson.readHttpResponse(response);
+                    if (jsonObject != null) {
                         LOGGER.debug("One-time upload token retrieved");
-                        return root.get("data").get("token").asText();
+                        return jsonObject.get("data").get("token").asText();
                     }
                 } else {
                     uploader.handleUnexpectedHttpResponse(LOGGER, request.getURI().toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());

@@ -18,9 +18,8 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import alpine.notification.Notification;
-import alpine.notification.NotificationLevel;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -32,9 +31,9 @@ import org.dependencytrack.notification.NotificationConstants;
 import org.dependencytrack.notification.NotificationGroup;
 import org.dependencytrack.notification.NotificationScope;
 import org.dependencytrack.util.HttpUtil;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
+import alpine.common.logging.Logger;
+import alpine.notification.Notification;
+import alpine.notification.NotificationLevel;
 
 /**
  * Base abstract class that all IMetaAnalyzer implementations should likely extend.

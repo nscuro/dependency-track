@@ -18,21 +18,20 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import com.github.packageurl.PackageURL;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
-import org.dependencytrack.model.Component;
-import org.dependencytrack.model.RepositoryType;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.dependencytrack.common.Jackson;
+import org.dependencytrack.model.Component;
+import org.dependencytrack.model.RepositoryType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
 
 /**
  * An IMetaAnalyzer implementation that supports Hex.
@@ -81,16 +80,15 @@ public class HexMetaAnalyzer extends AbstractMetaAnalyzer {
             final String url = String.format(baseUrl + API_URL, packageName);
             try (final CloseableHttpResponse response = processHttpRequest(url)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    if (response.getEntity()!=null) {
-                        String responseString = EntityUtils.toString(response.getEntity());
-                        var jsonObject = new JSONObject(responseString);
-                        final JSONArray releasesArray = jsonObject.getJSONArray("releases");
-                        if (releasesArray.length() > 0) {
+                    var jsonObject = Jackson.readHttpResponse(response);
+                    if (jsonObject != null) {
+                        final ArrayNode releasesArray = Jackson.asArray(jsonObject, "releases");
+                        if (releasesArray.size() > 0) {
                             // The first one in the array is always the latest version
-                            final JSONObject release = releasesArray.getJSONObject(0);
-                            final String latest = release.optString("version", null);
+                            final JsonNode release = releasesArray.get(0);
+                            final String latest = Jackson.optString(release, "version");
                             meta.setLatestVersion(latest);
-                            final String insertedAt = release.optString("inserted_at", null);
+                            final String insertedAt = Jackson.optString(release, "inserted_at");
                             if (insertedAt != null) {
                                 final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
                                 try {

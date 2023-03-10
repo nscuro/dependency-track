@@ -18,28 +18,26 @@
  */
 package org.dependencytrack.parser.vulndb;
 
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.basic.DefaultOAuthConsumer;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.util.EntityUtils;
-import org.dependencytrack.common.HttpClientPool;
-import org.dependencytrack.parser.vulndb.model.Results;
-import org.dependencytrack.parser.vulndb.model.Vulnerability;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.dependencytrack.common.HttpClientPool;
+import org.dependencytrack.common.Jackson;
+import org.dependencytrack.parser.vulndb.model.Results;
+import org.dependencytrack.parser.vulndb.model.Vulnerability;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.basic.DefaultOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
 
 /*
  * Util class needed by VulnDBAnalysis Task to get vulnerabilities by the cpe provided. The result obtained from the api
@@ -85,8 +83,7 @@ public class VulnDbClient {
             Results results;
             if (response != null) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    String responseString = EntityUtils.toString(response.getEntity());
-                    var jsonObject = new JSONObject(responseString);
+                    var jsonObject = Jackson.readHttpResponse(response);
                     results = vulnDbParser.parse(jsonObject, clazz);
                     return results;
                 } else {

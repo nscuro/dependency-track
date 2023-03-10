@@ -18,6 +18,11 @@
  */
 package org.dependencytrack.common;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,12 +32,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.http.client.methods.CloseableHttpResponse;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Optional;
 
 /**
  * Helper class wrapping a Jackson {@link ObjectMapper} and providing various utility methods.
@@ -89,9 +88,12 @@ public final class Jackson {
     }
 
     public static <T> T readHttpResponse(final CloseableHttpResponse response, final Class<T> clazz) throws IOException {
-        try (final InputStream entityInputStream = response.getEntity().getContent()) {
-            return objectReader().readValue(entityInputStream, clazz);
+        if ((response != null) && (response.getEntity().getContent() != null)) {
+            try (final InputStream entityInputStream = response.getEntity().getContent()) {
+                return objectReader().readValue(entityInputStream, clazz);
+            }
         }
+        return null;
     }
 
     public static ArrayNode asArray(final JsonNode jsonNode, final String fieldName) {
@@ -104,9 +106,53 @@ public final class Jackson {
     }
 
     public static String optString(final JsonNode jsonNode, final String fieldName) {
-        return Optional.ofNullable(jsonNode.get(fieldName))
-                .map(JsonNode::asText)
-                .orElse(null);
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : field.asText();
+    }
+
+    public static String optString(final JsonNode jsonNode, final int index) {
+        final var field = jsonNode.get(index);
+        return field == null || field.isNull() ? null : field.asText();
+    }
+
+    public static Integer optInt(final JsonNode jsonNode, final String fieldName) {
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : field.asInt();
+    }
+
+    public static Number optLong(final JsonNode jsonNode, final String fieldName) {
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : field.asLong();
+    }
+
+    public static Double optDouble(final JsonNode jsonNode, final String fieldName) {
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : field.asDouble();
+    }
+
+    public static BigDecimal optBigDecimal(final JsonNode jsonNode, final String fieldName) {
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : field.decimalValue();
+    }
+
+    public static Boolean optBoolean(final JsonNode jsonNode, final String fieldName) {
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : field.asBoolean();
+    }
+
+    public static JsonNode optNode(final JsonNode jsonNode, final String fieldName) {
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : field;
+    }
+
+    public static JsonNode optNode(final JsonNode jsonNode, final int index) {
+        final var field = jsonNode.get(index);
+        return field == null || field.isNull() ? null : field;
+    }
+
+    public static ArrayNode optArray(final JsonNode jsonNode, final String fieldName) {
+        final var field = jsonNode.get(fieldName);
+        return field == null || field.isNull() ? null : (ArrayNode)field;
     }
 
     /**

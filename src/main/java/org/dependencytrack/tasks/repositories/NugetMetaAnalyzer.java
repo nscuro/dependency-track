@@ -18,22 +18,21 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import com.github.packageurl.PackageURL;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.dependencytrack.model.Component;
-import org.dependencytrack.model.RepositoryType;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.dependencytrack.common.Jackson;
+import org.dependencytrack.model.Component;
+import org.dependencytrack.model.RepositoryType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
 
 /**
  * An IMetaAnalyzer implementation that supports Nuget.
@@ -106,10 +105,9 @@ public class NugetMetaAnalyzer extends AbstractMetaAnalyzer {
         final String url = String.format(versionQueryUrl, component.getPurl().getName().toLowerCase());
         try (final CloseableHttpResponse response = processHttpRequest(url)) {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                if (response.getEntity() != null) {
-                    String responseString = EntityUtils.toString(response.getEntity());
-                    var jsonObject = new JSONObject(responseString);
-                    final JSONArray versions = jsonObject.getJSONArray("versions");
+                var jsonObject = Jackson.readHttpResponse(response);
+                if (jsonObject != null) {
+                    final ArrayNode versions = Jackson.asArray(jsonObject, "versions");
                     final String latest = findLatestVersion(versions); // get the last version in the array
                     meta.setLatestVersion(latest);
                 }
@@ -123,15 +121,15 @@ public class NugetMetaAnalyzer extends AbstractMetaAnalyzer {
         return false;
     }
 
-    private String findLatestVersion(JSONArray versions) {
-        if (versions.length() < 1) {
+    private String findLatestVersion(ArrayNode versions) {
+        if (versions.size() < 1) {
             return null;
         }
 
-        ComparableVersion latestVersion = new ComparableVersion(versions.getString(0));
+        ComparableVersion latestVersion = new ComparableVersion(versions.get(0).asText());
 
-        for (int i = 1; i < versions.length(); i++) {
-            ComparableVersion version = new ComparableVersion(versions.getString(i));
+        for (int i = 1; i < versions.size(); i++) {
+            ComparableVersion version = new ComparableVersion(versions.get(i).asText());
             if (version.compareTo(latestVersion) > 0) {
                 latestVersion = version;
             }
@@ -144,16 +142,13 @@ public class NugetMetaAnalyzer extends AbstractMetaAnalyzer {
         final String url = String.format(registrationUrl, component.getPurl().getName().toLowerCase(), meta.getLatestVersion());
         try (final CloseableHttpResponse response = processHttpRequest(url)) {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                if (response.getEntity() != null) {
-                    String stringResponse = EntityUtils.toString(response.getEntity());
-                    if (!stringResponse.equalsIgnoreCase("") && !stringResponse.equalsIgnoreCase("{}")) {
-                        JSONObject jsonResponse = new JSONObject(stringResponse);
-                        final String updateTime = jsonResponse.optString("published", null);
-                        if (updateTime != null) {
-                            meta.setPublishedTimestamp(parseUpdateTime(updateTime));
-                        }
-                        return true;
+                JsonNode jsonObject = Jackson.readHttpResponse(response);
+                if (jsonObject != null && jsonObject.fields().hasNext()) {
+                    final String updateTime = Jackson.optString(jsonObject, "published");
+                    if (updateTime != null) {
+                        meta.setPublishedTimestamp(parseUpdateTime(updateTime));
                     }
+                    return true;
                 }
             } else {
                 handleUnexpectedHttpResponse(LOGGER, url, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), component);
@@ -169,15 +164,14 @@ public class NugetMetaAnalyzer extends AbstractMetaAnalyzer {
         try {
             try (final CloseableHttpResponse response = processHttpRequest(url)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    if(response.getEntity()!=null){
-                    String responseString = EntityUtils.toString(response.getEntity());
-                        JSONObject responseJson = new JSONObject(responseString);
-                        final JSONArray resources = responseJson.getJSONArray("resources");
-                        final JSONObject packageBaseResource = findResourceByType(resources, "PackageBaseAddress");
-                        final JSONObject registrationsBaseResource = findResourceByType(resources, "RegistrationsBaseUrl");
+                    JsonNode jsonObject = Jackson.readHttpResponse(response);
+                    if (jsonObject != null){
+                        final ArrayNode resources = Jackson.asArray(jsonObject, "resources");
+                        final JsonNode packageBaseResource = findResourceByType(resources, "PackageBaseAddress");
+                        final JsonNode registrationsBaseResource = findResourceByType(resources, "RegistrationsBaseUrl");
                         if (packageBaseResource != null && registrationsBaseResource != null) {
-                            versionQueryUrl = packageBaseResource.getString("@id") + "%s/index.json";
-                            registrationUrl = registrationsBaseResource.getString("@id") + "%s/%s.json";
+                            versionQueryUrl = packageBaseResource.get("@id").asText() + "%s/index.json";
+                            registrationUrl = registrationsBaseResource.get("@id").asText() + "%s/%s.json";
                         }
                     }
                 }
@@ -187,11 +181,11 @@ public class NugetMetaAnalyzer extends AbstractMetaAnalyzer {
         }
     }
 
-    private JSONObject findResourceByType(JSONArray resources, String type) {
-        for (int i = 0; i < resources.length(); i++) {
-            String resourceType = resources.getJSONObject(i).getString("@type");
+    private JsonNode findResourceByType(ArrayNode resources, String type) {
+        for (int i = 0; i < resources.size(); i++) {
+            String resourceType = resources.get(i).get("@type").asText();
             if (resourceType != null && resourceType.toLowerCase().startsWith(type.toLowerCase())) {
-                return resources.getJSONObject(i);
+                return resources.get(i);
             }
         }
 

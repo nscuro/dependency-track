@@ -18,8 +18,14 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import com.github.packageurl.PackageURL;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -29,15 +35,8 @@ import org.dependencytrack.util.DateUtil;
 import org.dependencytrack.util.XmlUtil;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import java.io.IOException;
-import java.io.InputStream;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
 
 /**
  * An IMetaAnalyzer implementation that supports Maven repositories (including Maven Central).

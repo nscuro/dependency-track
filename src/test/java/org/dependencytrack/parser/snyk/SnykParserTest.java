@@ -18,26 +18,25 @@
  */
 package org.dependencytrack.parser.snyk;
 
-import alpine.model.IConfigProperty;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.dependencytrack.PersistenceCapableTest;
-import org.dependencytrack.model.VulnerableSoftware;
-import org.dependencytrack.parser.snyk.model.SnykError;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.dependencytrack.model.ConfigPropertyConstants.SCANNER_OSSINDEX_API_USERNAME;
 import static org.dependencytrack.model.ConfigPropertyConstants.SCANNER_SNYK_API_TOKEN;
 import static org.dependencytrack.model.ConfigPropertyConstants.SCANNER_SNYK_CVSS_SOURCE;
 import static org.dependencytrack.model.ConfigPropertyConstants.SCANNER_SNYK_ENABLED;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import org.dependencytrack.PersistenceCapableTest;
+import org.dependencytrack.common.Jackson;
+import org.dependencytrack.model.VulnerableSoftware;
+import org.dependencytrack.parser.snyk.model.SnykError;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import alpine.model.IConfigProperty;
 
 public class SnykParserTest extends PersistenceCapableTest {
 
@@ -52,8 +51,8 @@ public class SnykParserTest extends PersistenceCapableTest {
     public void testParseVersionRanges() throws IOException {
 
         String jsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/unit/snyk.jsons/ranges.json")));
-        final JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray ranges = jsonObject.optJSONArray("range0");
+        final JsonNode jsonObject = Jackson.readString(jsonString);
+        ArrayNode ranges = Jackson.optArray(jsonObject, "range0");
         String purl = "pkg:npm/bootstrap-table@1.20.0";
         List<VulnerableSoftware> vulnerableSoftwares = parser.parseVersionRanges(qm, purl, ranges);
         Assert.assertNotNull(vulnerableSoftwares);
@@ -68,8 +67,8 @@ public class SnykParserTest extends PersistenceCapableTest {
     public void testParseVersionRangesStar() throws IOException {
 
         String jsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/unit/snyk.jsons/ranges.json")));
-        final JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray ranges = jsonObject.optJSONArray("range2");
+        final JsonNode jsonObject = Jackson.readString(jsonString);
+        ArrayNode ranges = Jackson.optArray(jsonObject, "range2");
         String purl = "pkg:npm/bootstrap-table@1.20.0";
         List<VulnerableSoftware> vulnerableSoftwares = parser.parseVersionRanges(qm, purl, ranges);
         Assert.assertNotNull(vulnerableSoftwares);
@@ -80,8 +79,8 @@ public class SnykParserTest extends PersistenceCapableTest {
     public void testParseVersionIndefiniteRanges() throws IOException {
 
         String jsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/unit/snyk.jsons/ranges.json")));
-        final JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray ranges = jsonObject.optJSONArray("range1");
+        final JsonNode jsonObject = Jackson.readString(jsonString);
+        ArrayNode ranges = Jackson.optArray(jsonObject, "range1");
         String purl = "pkg:npm/bootstrap-table@1.20.0";
         List<VulnerableSoftware> vulnerableSoftwares = parser.parseVersionRanges(qm, purl, ranges);
         Assert.assertNotNull(vulnerableSoftwares);
@@ -93,21 +92,21 @@ public class SnykParserTest extends PersistenceCapableTest {
 
         // By default NVD is first priority for CVSS, no need to set config property.
         String jsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/unit/snyk.jsons/severities.json")));
-        final JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray severities = jsonObject.optJSONArray("severities1");
-        JSONObject cvss = parser.selectCvssObjectBasedOnSource(severities);
+        final JsonNode jsonObject = Jackson.readString(jsonString);
+        ArrayNode severities = Jackson.optArray(jsonObject, "severities1");
+        JsonNode cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("NVD", cvss.optString("source"));
+        Assert.assertEquals("NVD", Jackson.optString(cvss, "source"));
 
-        severities = jsonObject.optJSONArray("severities2");
+        severities = Jackson.optArray(jsonObject, "severities2");
         cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("SNYK", cvss.optString("source"));
+        Assert.assertEquals("SNYK", Jackson.optString(cvss, "source"));
 
-        severities = jsonObject.optJSONArray("severities5");
+        severities = Jackson.optArray(jsonObject, "severities5");
         cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("RHEL", cvss.optString("source"));
+        Assert.assertEquals("RHEL", Jackson.optString(cvss, "source"));
     }
 
     @Test
@@ -120,21 +119,21 @@ public class SnykParserTest extends PersistenceCapableTest {
                 "First priority source for cvss calculation");
 
         String jsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/unit/snyk.jsons/severities.json")));
-        final JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray severities = jsonObject.optJSONArray("severities1");
-        JSONObject cvss = parser.selectCvssObjectBasedOnSource(severities);
+        final JsonNode jsonObject = Jackson.readString(jsonString);
+        ArrayNode severities = Jackson.optArray(jsonObject, "severities1");
+        JsonNode cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("SNYK", cvss.optString("source"));
+        Assert.assertEquals("SNYK", Jackson.optString(cvss, "source"));
 
-        severities = jsonObject.optJSONArray("severities3");
+        severities = Jackson.optArray(jsonObject, "severities3");
         cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("NVD", cvss.optString("source"));
+        Assert.assertEquals("NVD", Jackson.optString(cvss, "source"));
 
-        severities = jsonObject.optJSONArray("severities4");
+        severities = Jackson.optArray(jsonObject, "severities4");
         cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("RHEL", cvss.optString("source"));
+        Assert.assertEquals("RHEL", Jackson.optString(cvss, "source"));
     }
 
     @Test
@@ -167,42 +166,42 @@ public class SnykParserTest extends PersistenceCapableTest {
     @Test
     public void testSelectCvssObjectBasedOnSource() throws IOException {
         String jsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/unit/snyk.jsons/severities.json")));
-        final JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray severities = jsonObject.optJSONArray("severities1");
-        JSONObject cvss = parser.selectCvssObjectBasedOnSource(severities);
+        final JsonNode jsonObject = Jackson.readString(jsonString);
+        ArrayNode severities = Jackson.optArray(jsonObject, "severities1");
+        JsonNode cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("NVD", cvss.optString("source"));
-        Assert.assertEquals("high", cvss.optString("level"));
-        Assert.assertEquals("7.5", cvss.optString("score"));
-        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", cvss.optString("vector"));
+        Assert.assertEquals("NVD", Jackson.optString(cvss, "source"));
+        Assert.assertEquals("high", Jackson.optString(cvss, "level"));
+        Assert.assertEquals("7.5", Jackson.optString(cvss, "score"));
+        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", Jackson.optString(cvss, "vector"));
 
-        severities = jsonObject.optJSONArray("severities4");
+        severities = Jackson.optArray(jsonObject, "severities4");
         cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("RHEL", cvss.optString("source"));
-        Assert.assertEquals("high", cvss.optString("level"));
-        Assert.assertEquals("7.5", cvss.optString("score"));
-        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", cvss.optString("vector"));
+        Assert.assertEquals("RHEL", Jackson.optString(cvss, "source"));
+        Assert.assertEquals("high", Jackson.optString(cvss, "level"));
+        Assert.assertEquals("7.5", Jackson.optString(cvss, "score"));
+        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", Jackson.optString(cvss, "vector"));
 
-        severities = jsonObject.optJSONArray("severities2");
+        severities = Jackson.optArray(jsonObject, "severities2");
         cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("SNYK", cvss.optString("source"));
-        Assert.assertEquals("high", cvss.optString("level"));
-        Assert.assertEquals("7.5", cvss.optString("score"));
-        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H/E:P", cvss.optString("vector"));
-        severities = jsonObject.optJSONArray("severities3");
+        Assert.assertEquals("SNYK", Jackson.optString(cvss, "source"));
+        Assert.assertEquals("high", Jackson.optString(cvss, "level"));
+        Assert.assertEquals("7.5", Jackson.optString(cvss, "score"));
+        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H/E:P", Jackson.optString(cvss, "vector"));
+        severities = Jackson.optArray(jsonObject, "severities3");
         cvss = parser.selectCvssObjectBasedOnSource(severities);
         Assert.assertNotNull(cvss);
-        Assert.assertEquals("NVD", cvss.optString("source"));
-        Assert.assertEquals("high", cvss.optString("level"));
-        Assert.assertEquals("7.5", cvss.optString("score"));
-        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", cvss.optString("vector"));
+        Assert.assertEquals("NVD", Jackson.optString(cvss, "source"));
+        Assert.assertEquals("high", Jackson.optString(cvss, "level"));
+        Assert.assertEquals("7.5", Jackson.optString(cvss, "score"));
+        Assert.assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", Jackson.optString(cvss, "vector"));
     }
 
     @Test
     public void testParseErrors() {
-        final JSONObject jsonObject = new JSONObject("""
+        final JsonNode jsonObject = Jackson.readString("""
                 {
                    "jsonapi": {
                      "version": "1.0"
@@ -245,7 +244,7 @@ public class SnykParserTest extends PersistenceCapableTest {
 
     @Test
     public void testParseErrorsWhenInputHasNoErrorsField() {
-        assertThat(parser.parseErrors(new JSONObject("{}"))).isEmpty();
+        assertThat(parser.parseErrors(Jackson.readString("{}"))).isEmpty();
     }
 
 }

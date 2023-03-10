@@ -18,9 +18,14 @@
  */
 package org.dependencytrack.integrations.kenna;
 
-import alpine.common.logging.Logger;
-import alpine.model.ConfigProperty;
-import alpine.security.crypto.DataEncryption;
+import static org.dependencytrack.model.ConfigPropertyConstants.KENNA_CONNECTOR_ID;
+import static org.dependencytrack.model.ConfigPropertyConstants.KENNA_ENABLED;
+import static org.dependencytrack.model.ConfigPropertyConstants.KENNA_TOKEN;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -31,23 +36,16 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.HttpClientPool;
+import org.dependencytrack.common.Jackson;
 import org.dependencytrack.integrations.AbstractIntegrationPoint;
 import org.dependencytrack.integrations.PortfolioFindingUploader;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.ProjectProperty;
-import org.json.JSONObject;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.dependencytrack.model.ConfigPropertyConstants.KENNA_CONNECTOR_ID;
-import static org.dependencytrack.model.ConfigPropertyConstants.KENNA_ENABLED;
-import static org.dependencytrack.model.ConfigPropertyConstants.KENNA_TOKEN;
+import com.fasterxml.jackson.databind.JsonNode;
+import alpine.common.logging.Logger;
+import alpine.model.ConfigProperty;
+import alpine.security.crypto.DataEncryption;
 
 public class KennaSecurityUploader extends AbstractIntegrationPoint implements PortfolioFindingUploader {
 
@@ -110,10 +108,9 @@ public class KennaSecurityUploader extends AbstractIntegrationPoint implements P
                     .build();
             request.setEntity(data);
             try (CloseableHttpResponse response = HttpClientPool.getClient().execute(request)) {
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK && response.getEntity() != null) {
-                    String responseString = EntityUtils.toString(response.getEntity());
-                    final JSONObject root = new JSONObject(responseString);
-                    if (root.getString("success").equals("true")) {
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    final JsonNode root = Jackson.readHttpResponse(response);
+                    if (root.get("success").asBoolean()) {
                         LOGGER.debug("Successfully uploaded KDI");
                         return;
                     }

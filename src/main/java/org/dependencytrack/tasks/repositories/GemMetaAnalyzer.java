@@ -18,16 +18,14 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import com.github.packageurl.PackageURL;
+import java.io.IOException;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
+import org.dependencytrack.common.Jackson;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.RepositoryType;
-import org.json.JSONObject;
-
-import java.io.IOException;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
 
 /**
  * An IMetaAnalyzer implementation that supports Ruby Gems.
@@ -68,10 +66,9 @@ public class GemMetaAnalyzer extends AbstractMetaAnalyzer {
             final String url = String.format(baseUrl + API_URL, component.getPurl().getName());
             try (final CloseableHttpResponse response = processHttpRequest(url)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
-                    if(response.getEntity()!=null){
-                        String responseString = EntityUtils.toString(response.getEntity());
-                        var jsonObject = new JSONObject(responseString);
-                        final String latest = jsonObject.getString("version");
+                    var jsonObject = Jackson.readHttpResponse(response);
+                    if (jsonObject != null) {
+                        final String latest = jsonObject.get("version").asText();
                         meta.setLatestVersion(latest);
                     }
                 } else {

@@ -18,19 +18,17 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import com.github.packageurl.PackageURL;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.apache.http.HttpEntity;
+import java.io.IOException;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
+import org.dependencytrack.common.Jackson;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.RepositoryType;
 import org.dependencytrack.util.DateUtil;
-
-import java.io.IOException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
 
 /**
  * An IMetaAnalyzer implementation that supports Cargo via crates.io compatible repos
@@ -71,22 +69,20 @@ public class CargoMetaAnalyzer extends AbstractMetaAnalyzer {
             final String url = String.format(baseUrl + API_URL, component.getPurl().getName());
             try (final CloseableHttpResponse response = processHttpRequest(url)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    final HttpEntity entity = response.getEntity();
-                    if (entity != null) {
-                        String responseString = EntityUtils.toString(entity);
-                        var jsonObject = new JSONObject(responseString);
-                        final JSONObject crate = jsonObject.optJSONObject("crate");
+                    var jsonObject = Jackson.readHttpResponse(response);
+                    if (jsonObject != null) {
+                        final JsonNode crate = Jackson.optNode(jsonObject, "crate");
                         if (crate != null) {
-                            final String latest = crate.getString("newest_version");
+                            final String latest = crate.get("newest_version").asText();
                             meta.setLatestVersion(latest);
                         }
-                        final JSONArray versions = jsonObject.optJSONArray("versions");
+                        final ArrayNode versions = Jackson.optArray(jsonObject, "versions");
                         if (versions != null) {
-                            for (int i = 0; i < versions.length(); i++) {
-                                final JSONObject version = versions.getJSONObject(i);
-                                final String versionString = version.optString("num");
+                            for (int i = 0; i < versions.size(); i++) {
+                                final JsonNode version = versions.get(i);
+                                final String versionString = Jackson.optString(version, "num");
                                 if (meta.getLatestVersion() != null && meta.getLatestVersion().equals(versionString)) {
-                                    final String publishedTimestamp = version.optString("created_at");
+                                    final String publishedTimestamp = Jackson.optString(version, "created_at");
                                     try {
                                         meta.setPublishedTimestamp(DateUtil.fromISO8601(publishedTimestamp));
                                     } catch (IllegalArgumentException e) {

@@ -18,6 +18,7 @@
  */
 package org.dependencytrack.policy;
 
+import java.util.List;
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Policy;
@@ -25,13 +26,11 @@ import org.dependencytrack.model.PolicyCondition;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.List;
-
 public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void hasFullMatch() {
-        String def = "{ 'group': 'Acme', 'name': 'Test Component', 'version': '1.0.0' }";
+        String def = "{ \"group\": \"Acme\", \"name\": \"Test Component\", \"version\": \"1.0.0\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         PolicyCondition condition = qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -48,7 +47,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void hasMatchWithoutGroup() {
-        String def = "{ 'name': 'Test Component', 'version': '1.0.0' }";
+        String def = "{ \"name\": \"Test Component\", \"version\": \"1.0.0\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         PolicyCondition condition = qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -64,7 +63,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void hasWildcardMatch() {
-        String def = "{ 'group': '*', 'name': 'Test Component', 'version': '1.0.0' }";
+        String def = "{ \"group\": \"*\", \"name\": \"Test Component\", \"version\": \"1.0.0\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         PolicyCondition condition = qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -81,7 +80,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void hasPartialMatch1() {
-        String def = "{ 'group': 'Acme', 'name': 'Test Component', 'version': '1.0.0' }";
+        String def = "{ \"group\": \"Acme\", \"name\": \"Test Component\", \"version\": \"1.0.0\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         PolicyCondition condition = qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -95,7 +94,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void hasPartialMatch2() {
-        String def = "{ 'group': 'Acme', 'name': 'Test Component', 'version': '1.0.0' }";
+        String def = "{ \"group\": \"Acme\", \"name\": \"Test Component\", \"version\": \"1.0.0\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         PolicyCondition condition = qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -109,7 +108,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void hasPartialMatch3() {
-        String def = "{ 'group': 'Acme', 'name': 'Test Component', 'version': '1.0.0' }";
+        String def = "{ \"group\": \"Acme\", \"name\": \"Test Component\", \"version\": \"1.0.0\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         PolicyCondition condition = qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -123,7 +122,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void hasPartialMatch4() {
-        String def = "{ 'group': 'Acme', 'name': 'Test Component', 'version': '1.0.0' }";
+        String def = "{ \"group\": \"Acme\", \"name\": \"Test Component\", \"version\": \"1.0.0\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         PolicyCondition condition = qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -136,7 +135,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void noMatch() {
-        String def = "{ 'name': 'Test Component' }";
+        String def = "{ \"name\": \"Test Component\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -148,7 +147,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void wrongSubject() {
-        String def = "{ 'name': 'Test Component' }";
+        String def = "{ \"name\": \"Test Component\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.PACKAGE_URL, PolicyCondition.Operator.MATCHES, def);
         Component component = new Component();
@@ -160,7 +159,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void wrongOperator() {
-        String def = "{ 'name': 'Test Component' }";
+        String def = "{ \"name\": \"Test Component\" }";
         Policy policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.IS, def);
         Component component = new Component();
@@ -172,7 +171,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void matchWithVersionOperatorLessThan() {
-        final String def = "{ 'version': '< 1.1.1' }";
+        final String def = "{ \"version\": \"< 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
 
@@ -194,7 +193,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void noMatchWithVersionOperatorLessThan() {
-        final String def = "{ 'version': '< 1.1.1' }";
+        final String def = "{ \"version\": \"< 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.NO_MATCH, def);
 
@@ -216,7 +215,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void matchWithVersionOperatorLessThanOrEqual() {
-        final String def = "{ 'version': '<= 1.1.1' }";
+        final String def = "{ \"version\": \"<= 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
 
@@ -238,7 +237,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void noMatchWithVersionOperatorLessThanOrEqual() {
-        final String def = "{ 'version': '<= 1.1.1' }";
+        final String def = "{ \"version\": \"<= 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.NO_MATCH, def);
 
@@ -260,7 +259,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void matchWithVersionOperatorEqual() {
-        final String def = "{ 'version': '== 1.1.1' }";
+        final String def = "{ \"version\": \"== 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
 
@@ -282,7 +281,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void noMatchWithVersionOperatorEqual() {
-        final String def = "{ 'version': '== 1.1.1' }";
+        final String def = "{ \"version\": \"== 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.NO_MATCH, def);
 
@@ -304,7 +303,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void matchWithVersionOperatorNotEqual() {
-        final String def = "{ 'version': '!= 1.1.1' }";
+        final String def = "{ \"version\": \"!= 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
 
@@ -326,7 +325,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void noMatchWithVersionOperatorNotEqual() {
-        final String def = "{ 'version': '!= 1.1.1' }";
+        final String def = "{ \"version\": \"!= 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.NO_MATCH, def);
 
@@ -348,7 +347,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void matchWithVersionOperatorGreaterThan() {
-        final String def = "{ 'version': '> 1.1.1' }";
+        final String def = "{ \"version\": \"> 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
 
@@ -370,7 +369,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void noMatchWithVersionOperatorGreaterThan() {
-        final String def = "{ 'version': '> 1.1.1' }";
+        final String def = "{ \"version\": \"> 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.NO_MATCH, def);
 
@@ -392,7 +391,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void matchWithVersionOperatorGreaterThanOrEqual() {
-        final String def = "{ 'version': '>= 1.1.1' }";
+        final String def = "{ \"version\": \">= 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.MATCHES, def);
 
@@ -414,7 +413,7 @@ public class CoordinatesPolicyEvaluatorTest extends PersistenceCapableTest {
 
     @Test
     public void noMatchWithVersionOperatorGreaterThanOrEqual() {
-        final String def = "{ 'version': '>= 1.1.1' }";
+        final String def = "{ \"version\": \">= 1.1.1\" }";
         final var policy = qm.createPolicy("Test Policy", Policy.Operator.ANY, Policy.ViolationState.INFO);
         qm.createPolicyCondition(policy, PolicyCondition.Subject.COORDINATES, PolicyCondition.Operator.NO_MATCH, def);
 

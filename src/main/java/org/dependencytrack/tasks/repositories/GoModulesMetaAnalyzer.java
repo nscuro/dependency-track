@@ -18,19 +18,17 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import com.github.packageurl.PackageURL;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
-import org.dependencytrack.model.Component;
-import org.dependencytrack.model.RepositoryType;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.dependencytrack.common.Jackson;
+import org.dependencytrack.model.Component;
+import org.dependencytrack.model.RepositoryType;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
 
 /**
  * @see <a href="https://golang.org/ref/mod#goproxy-protocol">GOPROXY protocol</a>
@@ -67,10 +65,9 @@ public class GoModulesMetaAnalyzer extends AbstractMetaAnalyzer {
 
         try (final CloseableHttpResponse response = processHttpRequest(url)) {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                if (response.getEntity()!=null) {
-                    String responseString = EntityUtils.toString(response.getEntity());
-                    final var responseJson = new JSONObject(responseString);
-                    meta.setLatestVersion(responseJson.getString("Version"));
+                final var jsonObject = Jackson.readHttpResponse(response);
+                if (jsonObject != null) {
+                    meta.setLatestVersion(jsonObject.get("Version").asText());
 
                     // Module versions are prefixed with "v" in the Go ecosystem.
                     // Because some services (like OSS Index as of July 2021) do not support
@@ -82,7 +79,7 @@ public class GoModulesMetaAnalyzer extends AbstractMetaAnalyzer {
                         meta.setLatestVersion(StringUtils.stripStart(meta.getLatestVersion(), "v"));
                     }
 
-                    final String commitTimestamp = responseJson.getString("Time");
+                    final String commitTimestamp = jsonObject.get("Time").asText();
                     if (StringUtils.isNotBlank(commitTimestamp)) { // Time is optional
                         meta.setPublishedTimestamp(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").parse(commitTimestamp));
                     }

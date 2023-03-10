@@ -18,24 +18,25 @@
  */
 package org.dependencytrack.tasks;
 
-import alpine.common.logging.Logger;
-import alpine.event.framework.Event;
-import alpine.event.framework.LoggableSubscriber;
-import alpine.model.ConfigProperty;
-import alpine.notification.Notification;
-import alpine.notification.NotificationLevel;
-import com.github.packageurl.MalformedPackageURLException;
-import com.github.packageurl.PackageURL;
-import com.github.packageurl.PackageURLBuilder;
-import io.pebbletemplates.pebble.PebbleEngine;
-import io.pebbletemplates.pebble.template.PebbleTemplate;
+import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GITHUB_ADVISORIES_ACCESS_TOKEN;
+import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GITHUB_ADVISORIES_ENABLED;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.HttpClientPool;
+import org.dependencytrack.common.Jackson;
 import org.dependencytrack.event.GitHubAdvisoryMirrorEvent;
 import org.dependencytrack.event.IndexEvent;
 import org.dependencytrack.model.Cwe;
@@ -52,21 +53,17 @@ import org.dependencytrack.parser.github.graphql.model.GitHubSecurityAdvisory;
 import org.dependencytrack.parser.github.graphql.model.GitHubVulnerability;
 import org.dependencytrack.parser.github.graphql.model.PageableList;
 import org.dependencytrack.persistence.QueryManager;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GITHUB_ADVISORIES_ACCESS_TOKEN;
-import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_GITHUB_ADVISORIES_ENABLED;
+import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURL;
+import com.github.packageurl.PackageURLBuilder;
+import alpine.common.logging.Logger;
+import alpine.event.framework.Event;
+import alpine.event.framework.LoggableSubscriber;
+import alpine.model.ConfigProperty;
+import alpine.notification.Notification;
+import alpine.notification.NotificationLevel;
+import io.pebbletemplates.pebble.PebbleEngine;
+import io.pebbletemplates.pebble.template.PebbleTemplate;
 
 public class GitHubAdvisoryMirrorTask implements LoggableSubscriber {
 
@@ -135,7 +132,7 @@ public class GitHubAdvisoryMirrorTask implements LoggableSubscriber {
         request.addHeader("Authorization", "bearer " + accessToken);
         request.addHeader("content-type", "application/json");
         request.addHeader("accept", "application/json");
-        var jsonBody = new JSONObject();
+        var jsonBody = Jackson.newObject();
         jsonBody.put("query", queryTemplate);
         var stringEntity = new StringEntity(jsonBody.toString());
         request.setEntity(stringEntity);
@@ -146,8 +143,7 @@ public class GitHubAdvisoryMirrorTask implements LoggableSubscriber {
                 mirroredWithoutErrors = false;
             } else {
                 var parser = new GitHubSecurityAdvisoryParser();
-                String responseString = EntityUtils.toString(response.getEntity());
-                var jsonObject = new JSONObject(responseString);
+                var jsonObject = Jackson.readHttpResponse(response);
                 final PageableList pageableList = parser.parse(jsonObject);
                 updateDatasource(pageableList.getAdvisories());
                 if (pageableList.isHasNextPage()) {

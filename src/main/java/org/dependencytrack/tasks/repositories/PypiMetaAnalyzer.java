@@ -18,21 +18,20 @@
  */
 package org.dependencytrack.tasks.repositories;
 
-import alpine.common.logging.Logger;
-import com.github.packageurl.PackageURL;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
-import org.dependencytrack.model.Component;
-import org.dependencytrack.model.RepositoryType;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.dependencytrack.common.Jackson;
+import org.dependencytrack.model.Component;
+import org.dependencytrack.model.RepositoryType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.packageurl.PackageURL;
+import alpine.common.logging.Logger;
 
 /**
  * An IMetaAnalyzer implementation that supports Pypi.
@@ -73,18 +72,17 @@ public class PypiMetaAnalyzer extends AbstractMetaAnalyzer {
             final String url = String.format(baseUrl + API_URL, component.getPurl().getName());
             try (final CloseableHttpResponse response = processHttpRequest(url)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    if (response.getEntity() != null) {
-                        String stringResponse = EntityUtils.toString(response.getEntity());
-                        JSONObject jsonObject = new JSONObject(stringResponse);
-                        final JSONObject info = jsonObject.getJSONObject("info");
-                        final String latest = info.optString("version", null);
+                    JsonNode jsonObject = Jackson.readHttpResponse(response);
+                    if (jsonObject != null) {
+                        final JsonNode info = jsonObject.get("info");
+                        final String latest = Jackson.optString(info, "version");
                         if (latest != null) {
                             meta.setLatestVersion(latest);
-                            final JSONObject releases = jsonObject.getJSONObject("releases");
-                            final JSONArray latestArray = releases.getJSONArray(latest);
-                            if (latestArray.length() > 0) {
-                                final JSONObject release = latestArray.getJSONObject(0);
-                                final String updateTime = release.optString("upload_time", null);
+                            final JsonNode releases = jsonObject.get("releases");
+                            final ArrayNode latestArray = Jackson.asArray(releases, latest);
+                            if (latestArray.size() > 0) {
+                                final JsonNode release = latestArray.get(0);
+                                final String updateTime = Jackson.optString(release, "upload_time");
                                 if (updateTime != null) {
                                     final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
                                     try {

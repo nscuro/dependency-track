@@ -18,31 +18,20 @@
  */
 package org.dependencytrack.tasks.scanners;
 
-import alpine.Config;
-import alpine.common.logging.Logger;
-import alpine.common.metrics.Metrics;
-import alpine.common.util.Pageable;
-import alpine.event.framework.Event;
-import alpine.event.framework.Subscriber;
-import alpine.model.ConfigProperty;
-import alpine.security.crypto.DataEncryption;
-import com.github.packageurl.MalformedPackageURLException;
-import com.github.packageurl.PackageURL;
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.micrometer.tagged.TaggedRetryMetrics;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import io.github.resilience4j.retry.RetryRegistry;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.http.HttpEntity;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.ConfigKey;
 import org.dependencytrack.common.HttpClientPool;
+import org.dependencytrack.common.Jackson;
 import org.dependencytrack.common.ManagedHttpClientFactory;
 import org.dependencytrack.event.OssIndexAnalysisEvent;
 import org.dependencytrack.model.Component;
@@ -58,18 +47,26 @@ import org.dependencytrack.parser.ossindex.model.ComponentReportVulnerability;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.util.HttpUtil;
 import org.dependencytrack.util.NotificationUtil;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURL;
+import alpine.Config;
+import alpine.common.logging.Logger;
+import alpine.common.metrics.Metrics;
+import alpine.common.util.Pageable;
+import alpine.event.framework.Event;
+import alpine.event.framework.Subscriber;
+import alpine.model.ConfigProperty;
+import alpine.security.crypto.DataEncryption;
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.micrometer.tagged.TaggedRetryMetrics;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 import us.springett.cvss.Cvss;
 import us.springett.cvss.CvssV2;
 import us.springett.cvss.CvssV3;
 import us.springett.cvss.Score;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Subscriber task that performs an analysis of component using Sonatype OSS Index REST API.
@@ -199,12 +196,12 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
         List<Component> componentWithInvalidAnalysisFromCache = componentsPartitionByCacheValidity.get(false);
         final Pageable<Component> paginatedComponents = new Pageable<>(Config.getInstance().getPropertyAsInt(ConfigKey.OSSINDEX_REQUEST_MAX_PURL), componentWithInvalidAnalysisFromCache);
         while (!paginatedComponents.isPaginationComplete()) {
-            final List<String> coordinates = new ArrayList<>();
+            final var coordinates = Jackson.newArray();
             final List<Component> paginatedList = paginatedComponents.getPaginatedList();
             paginatedList.forEach(component -> coordinates.add(minimizePurl(component.getPurl())));
-            if (!CollectionUtils.isEmpty(coordinates)) {
-                final JSONObject json = new JSONObject();
-                json.put("coordinates", coordinates);
+            if (coordinates.size() > 0) {
+                final var json = Jackson.newObject();
+                json.set("coordinates", coordinates);
                 try {
                     final List<ComponentReport> report = ossIndexRetryer.executeCheckedSupplier(() -> submit(json));
                     processResults(report, paginatedList);
@@ -255,7 +252,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
     /**
      * Submits the payload to the Sonatype OSS Index service
      */
-    private List<ComponentReport> submit(final JSONObject payload) throws IOException {
+    private List<ComponentReport> submit(final JsonNode payload) throws IOException {
         HttpPost request = new HttpPost(API_BASE_URL);
         request.addHeader(HttpHeaders.ACCEPT, "application/json");
         request.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
@@ -265,11 +262,9 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
             request.addHeader("Authorization", HttpUtil.basicAuthHeaderValue(apiUsername, apiToken));
         }
         try (final CloseableHttpResponse response = HttpClientPool.getClient().execute(request)) {
-            HttpEntity responseEntity = response.getEntity();
-            String responseString = EntityUtils.toString(responseEntity);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 final OssIndexParser parser = new OssIndexParser();
-                return parser.parse(responseString);
+                return parser.parse(response);
             } else {
                 handleUnexpectedHttpResponse(LOGGER, API_BASE_URL, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
             }
