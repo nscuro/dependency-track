@@ -68,6 +68,7 @@ public class PolicyCondition implements Serializable {
         COORDINATES,
         CPE,
         //INHERITED_RISK_SCORE,
+        EXPRESSION,
         LICENSE,
         LICENSE_GROUP,
         PACKAGE_URL,
