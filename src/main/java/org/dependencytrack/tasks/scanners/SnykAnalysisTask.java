@@ -43,6 +43,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.ConfigKey;
 import org.dependencytrack.common.HttpClientPool;
@@ -63,6 +64,7 @@ import org.dependencytrack.util.RoundRobinAccessor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.SocketTimeoutException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -78,6 +80,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
+import static org.dependencytrack.common.ConfigKey.SNYK_RETRY_BACKOFF_INITIAL_DURATION_MS;
+import static org.dependencytrack.common.ConfigKey.SNYK_RETRY_BACKOFF_MAX_DURATION_MS;
+import static org.dependencytrack.common.ConfigKey.SNYK_RETRY_BACKOFF_MULTIPLIER;
+import static org.dependencytrack.common.ConfigKey.SNYK_RETRY_MAX_ATTEMPTS;
+import static org.dependencytrack.util.RetryUtil.logRetryEventWith;
+import static org.dependencytrack.util.RetryUtil.maybeClosePreviousResult;
+import static org.dependencytrack.util.RetryUtil.withRootCauseAnyOf;
 
 /**
  * Subscriber task that performs an analysis of component using Snyk vulnerability REST API.
@@ -97,26 +106,35 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
             PackageURL.StandardTypes.MAVEN,
             PackageURL.StandardTypes.NPM,
             PackageURL.StandardTypes.NUGET,
-            PackageURL.StandardTypes.PYPI
+            PackageURL.StandardTypes.PYPI,
+            "swift" // Not defined in StandardTypes
+    );
+    private static final Set<Integer> RETRYABLE_STATUS_CODES = Set.of(
+            HttpStatus.SC_TOO_MANY_REQUESTS,
+            HttpStatus.SC_BAD_GATEWAY,
+            HttpStatus.SC_SERVICE_UNAVAILABLE,
+            HttpStatus.SC_GATEWAY_TIMEOUT
     );
     private static final Retry RETRY;
     private static final ExecutorService EXECUTOR;
 
     static {
         final RetryRegistry retryRegistry = RetryRegistry.of(RetryConfig.<CloseableHttpResponse>custom()
+                .maxAttempts(Config.getInstance().getPropertyAsInt(SNYK_RETRY_MAX_ATTEMPTS))
                 .intervalFunction(ofExponentialBackoff(
-                        Duration.ofSeconds(Config.getInstance().getPropertyAsInt(ConfigKey.SNYK_RETRY_EXPONENTIAL_BACKOFF_INITIAL_DURATION_SECONDS)),
-                        Config.getInstance().getPropertyAsInt(ConfigKey.SNYK_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER),
-                        Duration.ofSeconds(Config.getInstance().getPropertyAsInt(ConfigKey.SNYK_RETRY_EXPONENTIAL_BACKOFF_MAX_DURATION_SECONDS))
+                        Duration.ofMillis(Config.getInstance().getPropertyAsInt(SNYK_RETRY_BACKOFF_INITIAL_DURATION_MS)),
+                        Config.getInstance().getPropertyAsInt(SNYK_RETRY_BACKOFF_MULTIPLIER),
+                        Duration.ofMillis(Config.getInstance().getPropertyAsInt(SNYK_RETRY_BACKOFF_MAX_DURATION_MS))
                 ))
-                .maxAttempts(Config.getInstance().getPropertyAsInt(ConfigKey.SNYK_RETRY_MAX_ATTEMPTS))
-                .retryOnException(exception -> false)
-                .retryOnResult(response -> 429 == response.getStatusLine().getStatusCode())
+                .retryOnException(withRootCauseAnyOf(Set.of(ConnectTimeoutException.class, SocketTimeoutException.class)))
+                .retryOnResult(response -> RETRYABLE_STATUS_CODES.contains(response.getStatusLine().getStatusCode()))
+                .consumeResultBeforeRetryAttempt(maybeClosePreviousResult(LOGGER))
+                .failAfterMaxAttempts(true)
                 .build());
         RETRY = retryRegistry.retry("snyk-api");
         RETRY.getEventPublisher()
-                .onRetry(event -> LOGGER.debug("Will execute retry #%d in %s" .formatted(event.getNumberOfRetryAttempts(), event.getWaitInterval())))
-                .onError(event -> LOGGER.error("Retry failed after %d attempts: %s" .formatted(event.getNumberOfRetryAttempts(), event.getLastThrowable())));
+                .onRetry(logRetryEventWith(LOGGER))
+                .onError(logRetryEventWith(LOGGER));
         TaggedRetryMetrics.ofRetryRegistry(retryRegistry)
                 .bindTo(Metrics.getRegistry());
 
@@ -244,7 +262,7 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
                         countDownLatch.countDown();
 
                         if (exception != null) {
-                            LOGGER.error("An unexpected error occurred while analyzing %s" .formatted(component), exception);
+                            LOGGER.error("An unexpected error occurred while analyzing %s".formatted(component), exception);
                         }
                     });
         }
@@ -273,7 +291,7 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
                     .scope(NotificationScope.SYSTEM)
                     .level(NotificationLevel.WARNING)
                     .group(NotificationGroup.ANALYZER)
-                    .title("Snyk API version %s is deprecated" .formatted(apiVersion))
+                    .title("Snyk API version %s is deprecated".formatted(apiVersion))
                     .content(message));
         }
     }
@@ -300,7 +318,7 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
 
     private void analyzeComponent(final Component component) {
         final String encodedPurl = URLEncoder.encode(component.getPurl().getCoordinates(), StandardCharsets.UTF_8);
-        final String requestUrl = "%s/rest/orgs/%s/packages/%s/issues?version=%s" .formatted(apiBaseUrl, apiOrgId, encodedPurl, apiVersion);
+        final String requestUrl = "%s/rest/orgs/%s/packages/%s/issues?version=%s".formatted(apiBaseUrl, apiOrgId, encodedPurl, apiVersion);
         try {
             URIBuilder uriBuilder = new URIBuilder(requestUrl);
             final HttpUriRequest request = new HttpGet(uriBuilder.build().toString());
@@ -325,7 +343,7 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
                     if (!errors.isEmpty()) {
                         LOGGER.error("Analysis of component %s failed with HTTP status %d: \n%s"
                                 .formatted(component.getPurl(), response.getStatusLine().getStatusCode(), errors.stream()
-                                        .map(error -> " - %s: %s (%s)" .formatted(error.title(), error.detail(), error.code()))
+                                        .map(error -> " - %s: %s (%s)".formatted(error.title(), error.detail(), error.code()))
                                         .collect(Collectors.joining("\n"))));
                     } else {
                         handleUnexpectedHttpResponse(LOGGER, request.getURI().toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
@@ -334,7 +352,7 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
                     handleUnexpectedHttpResponse(LOGGER, request.getURI().toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
                 }
             }
-        } catch (Throwable  ex) {
+        } catch (Throwable ex) {
             handleRequestException(LOGGER, ex);
         }
     }
@@ -392,7 +410,7 @@ public class SnykAnalysisTask extends BaseComponentAnalyzerTask implements Cache
     private Supplier<String> createTokenSupplier(final String tokenValue) {
         final String[] tokens = tokenValue.split(";");
         if (tokens.length > 1) {
-            LOGGER.debug("Will use %d tokens in round robin" .formatted(tokens.length));
+            LOGGER.debug("Will use %d tokens in round robin".formatted(tokens.length));
             final var roundRobinAccessor = new RoundRobinAccessor<>(List.of(tokens));
             return roundRobinAccessor::get;
         }

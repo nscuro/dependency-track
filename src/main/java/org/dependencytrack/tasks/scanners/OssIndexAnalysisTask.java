@@ -28,7 +28,6 @@ import alpine.model.ConfigProperty;
 import alpine.security.crypto.DataEncryption;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
-import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.micrometer.tagged.TaggedRetryMetrics;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -39,6 +38,7 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.dependencytrack.common.ConfigKey;
@@ -66,10 +66,23 @@ import us.springett.cvss.Score;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
+import static org.dependencytrack.common.ConfigKey.OSSINDEX_RETRY_BACKOFF_INITIAL_DURATION_MS;
+import static org.dependencytrack.common.ConfigKey.OSSINDEX_RETRY_BACKOFF_MAX_DURATION_MS;
+import static org.dependencytrack.common.ConfigKey.OSSINDEX_RETRY_BACKOFF_MULTIPLIER;
+import static org.dependencytrack.model.ConfigPropertyConstants.SCANNER_OSSINDEX_API_TOKEN;
+import static org.dependencytrack.model.ConfigPropertyConstants.SCANNER_OSSINDEX_API_USERNAME;
+import static org.dependencytrack.util.RetryUtil.logRetryEventWith;
+import static org.dependencytrack.util.RetryUtil.maybeClosePreviousResult;
+import static org.dependencytrack.util.RetryUtil.withRootCauseAnyOf;
 
 /**
  * Subscriber task that performs an analysis of component using Sonatype OSS Index REST API.
@@ -79,35 +92,49 @@ import java.util.stream.Collectors;
  */
 public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements CacheableScanTask, Subscriber {
 
-    private static final String API_BASE_URL = "https://ossindex.sonatype.org/api/v3/component-report";
     private static final Logger LOGGER = Logger.getLogger(OssIndexAnalysisTask.class);
+    private static final Set<Integer> RETRYABLE_STATUS_CODES = Set.of(
+            HttpStatus.SC_TOO_MANY_REQUESTS,
+            HttpStatus.SC_BAD_GATEWAY,
+            HttpStatus.SC_SERVICE_UNAVAILABLE,
+            HttpStatus.SC_GATEWAY_TIMEOUT
+    );
+    private static final Retry RETRY;
+
+    private final String apiBaseUrl;
     private String apiUsername;
     private String apiToken;
     private boolean aliasSyncEnabled;
     private VulnerabilityAnalysisLevel vulnerabilityAnalysisLevel;
 
-    private static Retry ossIndexRetryer;
-
     static {
-        IntervalFunction intervalWithCustomExponentialBackoff = IntervalFunction
-                .ofExponentialBackoff(
-                        IntervalFunction.DEFAULT_INITIAL_INTERVAL,
-                        Config.getInstance().getPropertyAsInt(ConfigKey.OSSINDEX_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER),
-                        Config.getInstance().getPropertyAsInt(ConfigKey.OSSINDEX_RETRY_EXPONENTIAL_BACKOFF_MAX_DURATION)
-                );
-
-        RetryConfig config = RetryConfig.custom()
-                .maxAttempts(Config.getInstance().getPropertyAsInt(ConfigKey.OSSINDEX_RETRY_EXPONENTIAL_BACKOFF_MAX_ATTEMPTS))
-                .intervalFunction(intervalWithCustomExponentialBackoff)
-                .build();
-
-        RetryRegistry registry = RetryRegistry.of(config);
-
-        ossIndexRetryer = registry.retry("ossIndexRetryer");
-
+        final RetryRegistry retryRegistry = RetryRegistry.of(RetryConfig.<CloseableHttpResponse>custom()
+                .maxAttempts(Config.getInstance().getPropertyAsInt(ConfigKey.OSSINDEX_RETRY_MAX_ATTEMPTS))
+                .intervalFunction(ofExponentialBackoff(
+                        Duration.ofMillis(Config.getInstance().getPropertyAsInt(OSSINDEX_RETRY_BACKOFF_INITIAL_DURATION_MS)),
+                        Config.getInstance().getPropertyAsInt(OSSINDEX_RETRY_BACKOFF_MULTIPLIER),
+                        Duration.ofMillis(Config.getInstance().getPropertyAsInt(OSSINDEX_RETRY_BACKOFF_MAX_DURATION_MS))
+                ))
+                .retryOnException(withRootCauseAnyOf(Set.of(ConnectTimeoutException.class, SocketTimeoutException.class)))
+                .retryOnResult(response -> RETRYABLE_STATUS_CODES.contains(response.getStatusLine().getStatusCode()))
+                .consumeResultBeforeRetryAttempt(maybeClosePreviousResult(LOGGER))
+                .failAfterMaxAttempts(true)
+                .build());
+        RETRY = retryRegistry.retry("ossindex-api");
+        RETRY.getEventPublisher()
+                .onRetry(logRetryEventWith(LOGGER))
+                .onError(logRetryEventWith(LOGGER));
         TaggedRetryMetrics
-                .ofRetryRegistry(registry)
+                .ofRetryRegistry(retryRegistry)
                 .bindTo(Metrics.getRegistry());
+    }
+
+    public OssIndexAnalysisTask() {
+        this("https://ossindex.sonatype.org/api/v3/component-report");
+    }
+
+    OssIndexAnalysisTask(final String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
     }
 
     public AnalyzerIdentity getAnalyzerIdentity() {
@@ -118,18 +145,18 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
      * {@inheritDoc}
      */
     public void inform(final Event e) {
-        if (e instanceof OssIndexAnalysisEvent) {
+        if (e instanceof final OssIndexAnalysisEvent event) {
             if (!super.isEnabled(ConfigPropertyConstants.SCANNER_OSSINDEX_ENABLED)) {
                 return;
             }
             try (QueryManager qm = new QueryManager()) {
                 final ConfigProperty apiUsernameProperty = qm.getConfigProperty(
-                        ConfigPropertyConstants.SCANNER_OSSINDEX_API_USERNAME.getGroupName(),
-                        ConfigPropertyConstants.SCANNER_OSSINDEX_API_USERNAME.getPropertyName()
+                        SCANNER_OSSINDEX_API_USERNAME.getGroupName(),
+                        SCANNER_OSSINDEX_API_USERNAME.getPropertyName()
                 );
                 final ConfigProperty apiTokenProperty = qm.getConfigProperty(
-                        ConfigPropertyConstants.SCANNER_OSSINDEX_API_TOKEN.getGroupName(),
-                        ConfigPropertyConstants.SCANNER_OSSINDEX_API_TOKEN.getPropertyName()
+                        SCANNER_OSSINDEX_API_TOKEN.getGroupName(),
+                        SCANNER_OSSINDEX_API_TOKEN.getPropertyName()
                 );
                 if (apiUsernameProperty == null || apiUsernameProperty.getPropertyValue() == null
                         || apiTokenProperty == null || apiTokenProperty.getPropertyValue() == null) {
@@ -145,7 +172,6 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                 }
                 aliasSyncEnabled = super.isEnabled(ConfigPropertyConstants.SCANNER_OSSINDEX_ALIAS_SYNC_ENABLED);
             }
-            final var event = (OssIndexAnalysisEvent) e;
             LOGGER.info("Starting Sonatype OSS Index analysis task");
             vulnerabilityAnalysisLevel = event.getVulnerabilityAnalysisLevel();
             if (event.getComponents().size() > 0) {
@@ -174,7 +200,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
      * @return true if OssIndexAnalysisTask should analyze, false if not
      */
     public boolean shouldAnalyze(final PackageURL purl) {
-        return !isCacheCurrent(Vulnerability.Source.OSSINDEX, API_BASE_URL, purl.toString());
+        return !isCacheCurrent(Vulnerability.Source.OSSINDEX, apiBaseUrl, purl.toString());
     }
 
     /**
@@ -183,7 +209,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
      * @param component component the Component to analyze from cache
      */
     public void applyAnalysisFromCache(final Component component) {
-        applyAnalysisFromCache(Vulnerability.Source.OSSINDEX, API_BASE_URL, component.getPurl().toString(), component, getAnalyzerIdentity(), vulnerabilityAnalysisLevel);
+        applyAnalysisFromCache(Vulnerability.Source.OSSINDEX, apiBaseUrl, component.getPurl().toString(), component, getAnalyzerIdentity(), vulnerabilityAnalysisLevel);
     }
 
     /**
@@ -194,9 +220,9 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
     public void analyze(final List<Component> components) {
         Map<Boolean, List<Component>> componentsPartitionByCacheValidity = components.stream()
                 .filter(component -> !component.isInternal() && isCapable(component))
-                .collect(Collectors.partitioningBy(component -> isCacheCurrent(Vulnerability.Source.OSSINDEX, API_BASE_URL, component.getPurl().toString())));
+                .collect(Collectors.partitioningBy(component -> isCacheCurrent(Vulnerability.Source.OSSINDEX, apiBaseUrl, component.getPurl().toString())));
         List<Component> componentWithValidAnalysisFromCache = componentsPartitionByCacheValidity.get(true);
-        componentWithValidAnalysisFromCache.forEach(component -> applyAnalysisFromCache(Vulnerability.Source.OSSINDEX, API_BASE_URL, component.getPurl().toString(), component, getAnalyzerIdentity(), vulnerabilityAnalysisLevel));
+        componentWithValidAnalysisFromCache.forEach(component -> applyAnalysisFromCache(Vulnerability.Source.OSSINDEX, apiBaseUrl, component.getPurl().toString(), component, getAnalyzerIdentity(), vulnerabilityAnalysisLevel));
         List<Component> componentWithInvalidAnalysisFromCache = componentsPartitionByCacheValidity.get(false);
         final Pageable<Component> paginatedComponents = new Pageable<>(Config.getInstance().getPropertyAsInt(ConfigKey.OSSINDEX_REQUEST_MAX_PURL), componentWithInvalidAnalysisFromCache);
         while (!paginatedComponents.isPaginationComplete()) {
@@ -207,9 +233,9 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                 final JSONObject json = new JSONObject();
                 json.put("coordinates", coordinates);
                 try {
-                    final List<ComponentReport> report = ossIndexRetryer.executeCheckedSupplier(() -> submit(json));
+                    final List<ComponentReport> report = submit(json);
                     processResults(report, paginatedList);
-                } catch (Throwable ex) {
+                } catch (IOException | RuntimeException ex) {
                     handleRequestException(LOGGER, ex);
                     return;
                 }
@@ -257,7 +283,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
      * Submits the payload to the Sonatype OSS Index service
      */
     private List<ComponentReport> submit(final JSONObject payload) throws IOException {
-        HttpPost request = new HttpPost(API_BASE_URL);
+        HttpPost request = new HttpPost(apiBaseUrl);
         request.addHeader(HttpHeaders.ACCEPT, "application/json");
         request.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         request.addHeader(HttpHeaders.USER_AGENT, ManagedHttpClientFactory.getUserAgent());
@@ -265,15 +291,17 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
         if (apiUsername != null && apiToken != null) {
             request.addHeader("Authorization", HttpUtil.basicAuthHeaderValue(apiUsername, apiToken));
         }
-        try (final CloseableHttpResponse response = HttpClientPool.getClient().execute(request)) {
+        try (final CloseableHttpResponse response = RETRY.executeCheckedSupplier(() -> HttpClientPool.getClient().execute(request))) {
             HttpEntity responseEntity = response.getEntity();
             String responseString = EntityUtils.toString(responseEntity);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 final OssIndexParser parser = new OssIndexParser();
                 return parser.parse(responseString);
             } else {
-                handleUnexpectedHttpResponse(LOGGER, API_BASE_URL, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+                handleUnexpectedHttpResponse(LOGGER, apiBaseUrl, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
             }
+        } catch (Throwable ex) {
+            handleRequestException(LOGGER, ex);
         }
         return new ArrayList<>();
 
@@ -324,7 +352,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                                 // In some cases, OSS Index may publish a vulnerability before the NVD does. In this case,
                                 // a sonatype id will be assigned to the vulnerability. However, it is possible that at
                                 // a later time, the vulnerability will be published to the NVD. Therefore, add an alias.
-                                // The "startsWith CVE" is unforntuantly necessary as of 11 June 2022, OSS Index has
+                                // The "startsWith CVE" is unfortunately necessary as of 11 June 2022, OSS Index has
                                 // multiple vulnerabilities with sonatype identifiers in the cve field.
                                 if (aliasSyncEnabled && reportedVuln.getCve() != null && reportedVuln.getCve().startsWith("CVE-")) {
                                     LOGGER.debug("Updating vulnerability alias for " + reportedVuln.getId());
@@ -338,7 +366,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                                 addVulnerabilityToCache(component, vulnerability);
                             }
                         }
-                        updateAnalysisCacheStats(qm, Vulnerability.Source.OSSINDEX, API_BASE_URL, component.getPurl().toString(), component.getCacheResult());
+                        updateAnalysisCacheStats(qm, Vulnerability.Source.OSSINDEX, apiBaseUrl, component.getPurl().toString(), component.getCacheResult());
                     }
                 }
             }
