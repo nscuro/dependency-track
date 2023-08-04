@@ -18,12 +18,11 @@
  */
 package org.dependencytrack.policy;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.dependencytrack.model.Component;
-import org.dependencytrack.model.Policy;
 import org.dependencytrack.model.PolicyCondition;
-import alpine.common.logging.Logger;
+
+import java.util.Optional;
+
+import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
 /**
  * Evaluates a components Common Platform Enumeration (CPE) against a policy.
@@ -31,9 +30,7 @@ import alpine.common.logging.Logger;
  * @author Steve Springett
  * @since 4.0.0
  */
-public class CpePolicyEvaluator extends AbstractPolicyEvaluator {
-
-    private static final Logger LOGGER = Logger.getLogger(CpePolicyEvaluator.class);
+public class CpePolicyEvaluator extends AbstractCelPolicyEvaluator {
 
     /**
      * {@inheritDoc}
@@ -43,25 +40,19 @@ public class CpePolicyEvaluator extends AbstractPolicyEvaluator {
         return PolicyCondition.Subject.CPE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public List<PolicyConditionViolation> evaluate(final Policy policy, final Component component) {
-        final List<PolicyConditionViolation> violations = new ArrayList<>();
-        for (final PolicyCondition condition: super.extractSupportedConditions(policy)) {
-            LOGGER.debug("Evaluating component (" + component.getUuid() + ") against policy condition (" + condition.getUuid() + ")");
-            if (PolicyCondition.Operator.MATCHES == condition.getOperator()) {
-                if (Matcher.matches(component.getCpe(), condition.getValue())) {
-                    violations.add(new PolicyConditionViolation(condition, component));
-                }
-            } else if (PolicyCondition.Operator.NO_MATCH == condition.getOperator()) {
-                if (!Matcher.matches(component.getCpe(), condition.getValue())) {
-                    violations.add(new PolicyConditionViolation(condition, component));
-                }
-            }
+    Optional<String> getScriptSrc(final PolicyCondition policyCondition) {
+        final String scriptSrc = """
+                component.cpe.matches("%s")
+                """.formatted(escapeJson(policyCondition.getValue()));
+
+        if (policyCondition.getOperator() == PolicyCondition.Operator.MATCHES) {
+            return Optional.of(scriptSrc);
+        } else if (policyCondition.getOperator() == PolicyCondition.Operator.NO_MATCH) {
+            return Optional.of("!" + scriptSrc);
         }
-        return violations;
+
+        return Optional.empty();
     }
 
 }

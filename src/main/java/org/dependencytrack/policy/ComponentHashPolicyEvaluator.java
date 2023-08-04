@@ -18,25 +18,18 @@
  */
 package org.dependencytrack.policy;
 
-import alpine.common.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Hash;
-
-import org.dependencytrack.model.Policy;
-import org.dependencytrack.model.Component;
-
 import org.dependencytrack.model.PolicyCondition;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
+
+import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
 /**
  * Evaluates a components HASH against a policy.
  */
-public class ComponentHashPolicyEvaluator extends AbstractPolicyEvaluator {
-
-    private static final Logger LOGGER = Logger.getLogger(ComponentHashPolicyEvaluator.class);
+public class ComponentHashPolicyEvaluator extends AbstractCelPolicyEvaluator {
 
     /**
      * {@inheritDoc}
@@ -46,24 +39,25 @@ public class ComponentHashPolicyEvaluator extends AbstractPolicyEvaluator {
         return PolicyCondition.Subject.COMPONENT_HASH;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public List<PolicyConditionViolation> evaluate(final Policy policy, final Component component) {
-        final List<PolicyConditionViolation> violations = new ArrayList<>();
-        for (final PolicyCondition condition : super.extractSupportedConditions(policy)) {
-            LOGGER.debug("Evaluating component (" + component.getUuid() + ") against policy condition (" + condition.getUuid() + ")");
-            final Hash hash = extractHashValues(condition);
-            if (matches(hash, component)) {
-                violations.add(new PolicyConditionViolation(condition, component));
-            }
+    Optional<String> getScriptSrc(final PolicyCondition policyCondition) {
+        final Hash hash = extractHashValues(policyCondition);
+        if (hash == null) {
+            return Optional.empty();
         }
-        return violations;
+
+        final String fieldName = hash.getAlgorithm().toLowerCase().replaceAll("-", "_");
+        if (org.dependencytrack.proto.policy.v1.Component.getDescriptor().findFieldByName(fieldName) == null) {
+            logger.warn("Component does not have a field named %s".formatted(fieldName));
+            return Optional.empty();
+        }
+
+        return Optional.of("""
+                component.%s == "%s"
+                """.formatted(fieldName, escapeJson(hash.getValue())));
     }
 
     private Hash extractHashValues(PolicyCondition condition) {
-
         if (condition.getValue() == null) {
             return null;
         }
@@ -72,39 +66,6 @@ public class ComponentHashPolicyEvaluator extends AbstractPolicyEvaluator {
                 def.optString("algorithm", null),
                 def.optString("value", null)
         );
-    }
-
-    private boolean matches(Hash hash, Component component) {
-
-        if (hash != null && hash.getAlgorithm() != null && hash.getValue() != null) {
-            String value = StringUtils.trimToNull(hash.getValue());
-            if (Hash.Algorithm.MD5.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getMd5());
-            } else if (Hash.Algorithm.SHA1.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getSha1());
-            } else if (Hash.Algorithm.SHA_256.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getSha256());
-            } else if (Hash.Algorithm.SHA_384.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getSha384());
-            } else if (Hash.Algorithm.SHA_512.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getSha512());
-            } else if (Hash.Algorithm.SHA3_256.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getSha3_256());
-            } else if (Hash.Algorithm.SHA3_384.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getSha3_384());
-            } else if (Hash.Algorithm.SHA3_512.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getSha3_512());
-            } else if (Hash.Algorithm.BLAKE3.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getBlake3());
-            } else if (Hash.Algorithm.BLAKE2b_256.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getBlake2b_256());
-            } else if (Hash.Algorithm.BLAKE2b_384.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getBlake2b_384());
-            } else if (Hash.Algorithm.BLAKE2b_512.getSpec().equalsIgnoreCase(hash.getAlgorithm())) {
-                return value.equalsIgnoreCase(component.getBlake2b_512());
-            }
-        }
-        return false;
     }
 
 }

@@ -30,6 +30,9 @@ import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.tasks.scanners.AnalyzerIdentity;
 import org.junit.Test;
 
+import java.sql.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +46,6 @@ public class CelPolicyEvaluatorTest extends PersistenceCapableTest {
                 'critical' in project.tags
                     && component.name == 'bar'
                     && vulns.exists(v, v.source == 'SNYK')
-                    && in_license_group(component.license, 'Permissive')
                 """);
 
         final var project = new Project();
@@ -73,6 +75,7 @@ public class CelPolicyEvaluatorTest extends PersistenceCapableTest {
         final var vulnA = new Vulnerability();
         vulnA.setVulnId("CVE-123");
         vulnA.setSource(Vulnerability.Source.NVD);
+        vulnA.setCreated(Date.from(LocalDateTime.now().minusYears(1).toInstant(ZoneOffset.UTC)));
         qm.persist(vulnA);
 
         final var vulnB = new Vulnerability();
