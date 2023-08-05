@@ -25,7 +25,8 @@ import org.dependencytrack.event.PolicyEvaluationEvent;
 import org.dependencytrack.event.ProjectMetricsUpdateEvent;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Project;
-import org.dependencytrack.policy.PolicyEngine;
+import org.dependencytrack.policy.CelPolicyEngine;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +52,7 @@ public class PolicyEvaluationTask implements Subscriber {
 
     private void performPolicyEvaluation(Project project, List<Component> components) {
         // Evaluate the components against applicable policies via the PolicyEngine.
-        final PolicyEngine pe = new PolicyEngine();
+        final var pe = new CelPolicyEngine();
         pe.evaluate(components);
         if (project != null) {
             Event.dispatch(new ProjectMetricsUpdateEvent(project.getUuid()));
