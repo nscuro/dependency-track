@@ -79,7 +79,7 @@ public abstract class AbstractCelPolicyEvaluator extends AbstractPolicyEvaluator
 
                     final CelPolicyScript script;
                     try {
-                        script = scriptHost.create(scriptSrc.get());
+                        script = scriptHost.compile(scriptSrc.get());
                     } catch (ScriptCreateException e) {
                         logger.error("Failed to create script for condition %s".formatted(condition.getUuid()), e);
                         return null;
@@ -132,7 +132,7 @@ public abstract class AbstractCelPolicyEvaluator extends AbstractPolicyEvaluator
                 .setPurl(Optional.ofNullable(component.getPurl())
                         .map(PackageURL::canonicalize)
                         .orElse(""))
-                .setSwid(trimToEmpty(component.getSwidTagId()))
+                .setSwidTagId(trimToEmpty(component.getSwidTagId()))
                 .setMd5(trimToEmpty(component.getMd5()))
                 .setSha1(trimToEmpty(component.getSha1()))
                 .setSha256(trimToEmpty(component.getSha256()))

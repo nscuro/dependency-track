@@ -32,6 +32,8 @@ import org.dependencytrack.auth.Permissions;
 import org.dependencytrack.model.Policy;
 import org.dependencytrack.model.PolicyCondition;
 import org.dependencytrack.persistence.QueryManager;
+import org.dependencytrack.policy.CelPolicyScriptHost;
+import org.projectnessie.cel.tools.ScriptCreateException;
 
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -79,6 +81,17 @@ public class PolicyConditionResource extends AlpineResource {
         try (QueryManager qm = new QueryManager()) {
             Policy policy = qm.getObjectByUuid(Policy.class, uuid);
             if (policy != null) {
+                if (jsonPolicyCondition.getSubject() == PolicyCondition.Subject.EXPRESSION) {
+                    try {
+                        CelPolicyScriptHost.getInstance().compile(jsonPolicyCondition.getValue());
+                    } catch (ScriptCreateException e) {
+                        // TODO: Bring this in a format that is digestible by the frontend.
+                        //   It'd be great if we could give visual hints to users as to *where*
+                        //   in their script the errors were found. The exception provides that info.
+                        return Response.status(Response.Status.BAD_REQUEST).entity("The provided CEL expression is invalid: %s".formatted(e.getMessage())).build();
+                    }
+                }
+
                 final PolicyCondition pc = qm.createPolicyCondition(policy, jsonPolicyCondition.getSubject(),
                         jsonPolicyCondition.getOperator(), StringUtils.trimToNull(jsonPolicyCondition.getValue()));
                 return Response.status(Response.Status.CREATED).entity(pc).build();
