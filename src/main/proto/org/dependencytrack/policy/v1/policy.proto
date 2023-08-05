@@ -52,6 +52,16 @@ message License {
   string uuid = 1;
   string id = 2;
   string name = 3;
+  repeated Group groups = 4;
+  bool is_osi_approved = 5;
+  bool is_fsf_libre = 6;
+  bool is_deprecated_id = 7;
+  bool is_custom = 8;
+
+  message Group {
+    string uuid = 1;
+    string name = 2;
+  }
 }
 
 message Project {

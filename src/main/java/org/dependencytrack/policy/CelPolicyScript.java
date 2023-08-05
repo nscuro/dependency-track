@@ -29,6 +29,8 @@ import java.util.Set;
 public class CelPolicyScript {
 
     public enum Requirement {
+        LICENSE,
+        LICENSE_GROUPS,
         PROJECT,
         VULNERABILITIES,
         VULNERABILITY_ALIASES

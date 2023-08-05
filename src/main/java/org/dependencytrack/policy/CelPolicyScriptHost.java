@@ -25,6 +25,7 @@ import com.google.api.expr.v1alpha1.Type;
 import com.google.common.util.concurrent.Striped;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.dependencytrack.policy.CelPolicyScript.Requirement;
+import org.dependencytrack.proto.policy.v1.License;
 import org.dependencytrack.proto.policy.v1.Project;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
 import org.projectnessie.cel.Ast;
@@ -116,10 +117,17 @@ public class CelPolicyScriptHost {
                 .map(Type::getMessageType)
                 .collect(Collectors.toSet());
 
-        // For project, vulnerabilities, and vulnerability aliases, it is enough to check
-        // if an expression of the respective type is present in the AST.
+        // For project, license, license groups, vulnerabilities, and vulnerability aliases,
+        // it is enough to check if an expression of the respective type is present in the AST.
         if (typeNames.contains(Project.getDescriptor().getFullName())) {
             requirements.add(Requirement.PROJECT);
+        }
+        if (typeNames.contains(License.getDescriptor().getFullName())) {
+            requirements.add(Requirement.LICENSE);
+
+            if (typeNames.contains(License.Group.getDescriptor().getFullName())) {
+                requirements.add(Requirement.LICENSE_GROUPS);
+            }
         }
         if (typeNames.contains(Vulnerability.getDescriptor().getFullName())) {
             requirements.add(Requirement.VULNERABILITIES);

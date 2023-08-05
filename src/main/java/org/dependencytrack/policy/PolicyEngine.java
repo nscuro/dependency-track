@@ -59,7 +59,6 @@ public class PolicyEngine {
         evaluators.add(new CwePolicyEvaluator());
         evaluators.add(new VulnerabilityIdPolicyEvaluator());
         evaluators.add(new VersionDistancePolicyEvaluator());
-        evaluators.add(new CelPolicyEvaluator());
     }
 
     public List<PolicyViolation> evaluate(final List<Component> components) {
@@ -141,9 +140,10 @@ public class PolicyEngine {
         }
         return switch (subject) {
             case CWE, SEVERITY, VULNERABILITY_ID -> PolicyViolation.Type.SECURITY;
-            case AGE, COORDINATES, PACKAGE_URL, CPE, SWID_TAGID, COMPONENT_HASH, VERSION, VERSION_DISTANCE, EXPRESSION ->
+            case AGE, COORDINATES, PACKAGE_URL, CPE, SWID_TAGID, COMPONENT_HASH, VERSION, VERSION_DISTANCE ->
                     PolicyViolation.Type.OPERATIONAL;
             case LICENSE, LICENSE_GROUP -> PolicyViolation.Type.LICENSE;
+            case EXPRESSION -> null; // TODO: Just here to satisfy the switch exhaustiveness
         };
     }
 

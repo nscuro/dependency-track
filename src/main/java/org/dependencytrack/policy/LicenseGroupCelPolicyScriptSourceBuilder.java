@@ -20,18 +20,23 @@ package org.dependencytrack.policy;
 
 import org.dependencytrack.model.PolicyCondition;
 
-import java.util.Optional;
+import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
-public class CelPolicyEvaluator extends AbstractCelPolicyEvaluator {
-
-    @Override
-    public PolicyCondition.Subject supportedSubject() {
-        return PolicyCondition.Subject.EXPRESSION;
-    }
+public class LicenseGroupCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
 
     @Override
-    Optional<String> getScriptSrc(final PolicyCondition policyCondition) {
-        return Optional.of(policyCondition.getValue());
+    public String apply(final PolicyCondition policyCondition) {
+        final String scriptSrc = """
+                component.license.groups.exists(group, group.uuid == "%s")
+                """.formatted(escapeJson(policyCondition.getValue()));
+
+        if (policyCondition.getOperator() == PolicyCondition.Operator.IS) {
+            return scriptSrc;
+        } else if (policyCondition.getOperator() == PolicyCondition.Operator.IS_NOT) {
+            return "!" + scriptSrc;
+        }
+
+        return null;
     }
 
 }

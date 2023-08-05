@@ -19,10 +19,13 @@
 package org.dependencytrack.policy;
 
 import alpine.common.logging.Logger;
+import alpine.common.metrics.Metrics;
 import com.github.packageurl.PackageURL;
 import com.google.protobuf.Timestamp;
+import io.micrometer.core.instrument.Timer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dependencytrack.model.Component;
+import org.dependencytrack.model.LicenseGroup;
 import org.dependencytrack.model.Policy;
 import org.dependencytrack.model.PolicyCondition;
 import org.dependencytrack.model.PolicyCondition.Subject;
@@ -66,6 +69,7 @@ public class CelPolicyEngine {
             Subject.CWE, new CweCelPolicyScriptSourceBuilder(),
             Subject.EXPRESSION, PolicyCondition::getValue,
             Subject.LICENSE, new LicenseCelPolicyScriptSourceBuilder(),
+            Subject.LICENSE_GROUP, new LicenseGroupCelPolicyScriptSourceBuilder(),
             Subject.PACKAGE_URL, new PackageUrlCelPolicyScriptSourceBuilder(),
             Subject.SEVERITY, new SeverityCelPolicyScriptSourceBuilder(),
             Subject.SWID_TAGID, new SwidTagIdCelPolicyScriptSourceBuilder(),
@@ -83,10 +87,26 @@ public class CelPolicyEngine {
     }
 
     public void evaluateProject(final UUID projectUuid) {
-        // TODO
+        final Timer.Sample timerSample = Timer.start();
+
+        try {
+            // TODO
+        } finally {
+            timerSample.stop(Timer
+                    .builder("dtrack_policy_eval")
+                    .tag("target", "project")
+                    .register(Metrics.getRegistry()));
+        }
+    }
+
+    // TODO: Just here to satisfy contract with legacy PolicyEngine; Remove after testing
+    public void evaluate(final List<Component> components) {
+        components.stream().map(Component::getUuid).forEach(this::evaluateComponent);
     }
 
     public void evaluateComponent(final UUID componentUuid) {
+        final Timer.Sample timerSample = Timer.start();
+
         try (final var qm = new QueryManager()) {
             final Component component = qm.getObjectByUuid(Component.class, componentUuid);
             if (component == null) {
@@ -158,7 +178,7 @@ public class CelPolicyEngine {
             LOGGER.info("Building script arguments for component %s and requirements %s"  // TODO: Change to debug
                     .formatted(componentUuid, requirements));
             final Map<String, Object> scriptArgs = Map.of(
-                    "component", mapComponent(component, requirements),
+                    "component", mapComponent(qm, component, requirements),
                     "project", mapProject(component.getProject(), requirements),
                     "vulns", loadVulnerabilities(qm, component, requirements)
             );
@@ -219,6 +239,11 @@ public class CelPolicyEngine {
             for (final PolicyViolation newViolation : newViolations) {
                 NotificationUtil.analyzeNotificationCriteria(qm, newViolation);
             }
+        } finally {
+            timerSample.stop(Timer
+                    .builder("dtrack_policy_eval")
+                    .tag("target", "component")
+                    .register(Metrics.getRegistry()));
         }
 
         LOGGER.info("Policy evaluation completed for component %s".formatted(componentUuid));  // TODO: Change to debug
@@ -309,7 +334,8 @@ public class CelPolicyEngine {
         return getParents(qm, parentUuid, parents);
     }
 
-    private static org.dependencytrack.proto.policy.v1.Component mapComponent(final org.dependencytrack.model.Component component,
+    private static org.dependencytrack.proto.policy.v1.Component mapComponent(final QueryManager qm,
+                                                                              final org.dependencytrack.model.Component component,
                                                                               final Set<Requirement> requirements) {
         final org.dependencytrack.proto.policy.v1.Component.Builder builder = org.dependencytrack.proto.policy.v1.Component.newBuilder()
                 .setUuid(Optional.ofNullable(component.getUuid()).map(UUID::toString).orElse(""))
@@ -334,9 +360,31 @@ public class CelPolicyEngine {
                 .setBlake2B512(trimToEmpty(component.getBlake2b_512()))
                 .setBlake3(trimToEmpty(component.getBlake3()));
 
-        if (component.getResolvedLicense() != null) {
-            builder.setLicense(License.newBuilder()
-                    .setId(trimToEmpty(component.getResolvedLicense().getLicenseId())));
+        if (requirements.contains(Requirement.LICENSE) && component.getResolvedLicense() != null) {
+            final License.Builder licenseBuilder = License.newBuilder()
+                    .setUuid(Optional.ofNullable(component.getResolvedLicense().getUuid()).map(UUID::toString).orElse(""))
+                    .setId(trimToEmpty(component.getResolvedLicense().getLicenseId()))
+                    .setName(trimToEmpty(component.getResolvedLicense().getName()))
+                    .setIsOsiApproved(component.getResolvedLicense().isOsiApproved())
+                    .setIsFsfLibre(component.getResolvedLicense().isFsfLibre())
+                    .setIsDeprecatedId(component.getResolvedLicense().isDeprecatedLicenseId())
+                    .setIsCustom(component.getResolvedLicense().isCustomLicense());
+
+            if (requirements.contains(Requirement.LICENSE_GROUPS)) {
+                final Query<LicenseGroup> licenseGroupQuery = qm.getPersistenceManager().newQuery(LicenseGroup.class);
+                licenseGroupQuery.setFilter("licenses.contains(:license)");
+                licenseGroupQuery.setNamedParameters(Map.of("license", component.getResolvedLicense()));
+                licenseGroupQuery.setResult("uuid, name");
+                try {
+                    licenseGroupQuery.executeResultList(LicenseGroup.class).stream()
+                            .map(licenseGroup -> License.Group.newBuilder()
+                                    .setUuid(Optional.ofNullable(licenseGroup.getUuid()).map(UUID::toString).orElse(""))
+                                    .setName(trimToEmpty(licenseGroup.getName())))
+                            .forEach(licenseBuilder::addGroups);
+                } finally {
+                    licenseGroupQuery.closeAll();
+                }
+            }
         }
 
         return builder.build();
@@ -375,6 +423,10 @@ public class CelPolicyEngine {
                 qm.getPersistenceManager().newQuery(org.dependencytrack.model.Vulnerability.class);
         query.setFilter("components.contains(:component)");
         query.setParameters(component);
+        // Avoid some ORM overhead by explicitly specifying the fields we want
+        // to fetch, and load them into a result class, rather than a candidate
+        // class. The returned Vulnerability objects are thus just dumb POJOs and
+        // not attached to the persistence context.
         query.setResult("""
                 uuid,
                 vulnId,
@@ -446,9 +498,11 @@ public class CelPolicyEngine {
         }
         return switch (subject) {
             case CWE, SEVERITY, VULNERABILITY_ID -> PolicyViolation.Type.SECURITY;
-            case AGE, COORDINATES, PACKAGE_URL, CPE, SWID_TAGID, COMPONENT_HASH, VERSION, EXPRESSION, VERSION_DISTANCE ->
+            case AGE, COORDINATES, PACKAGE_URL, CPE, SWID_TAGID, COMPONENT_HASH, VERSION, VERSION_DISTANCE ->
                     PolicyViolation.Type.OPERATIONAL;
             case LICENSE, LICENSE_GROUP -> PolicyViolation.Type.LICENSE;
+            case EXPRESSION ->
+                    PolicyViolation.Type.OPERATIONAL; // TODO: Need a way to determine this dynamically (or based on user config)
         };
     }
 
