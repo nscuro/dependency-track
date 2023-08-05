@@ -118,7 +118,7 @@ public class CelPolicyEngine {
             if (policies.isEmpty()) {
                 // With no applicable policies, there's no way to resolve violations.
                 // As a compensation, simply delete all violations associated with the component.
-                reconcileViolations(qm, Collections.emptyList());
+                reconcileViolations(qm, component, Collections.emptyList());
                 return;
             }
 
@@ -233,7 +233,7 @@ public class CelPolicyEngine {
 
             // Reconcile the violations created above with what's already in the database.
             // Create new records if necessary, and delete records that are no longer current.
-            final List<PolicyViolation> newViolations = reconcileViolations(qm, violations);
+            final List<PolicyViolation> newViolations = reconcileViolations(qm, component, violations);
 
             // Notify users about any new violations.
             for (final PolicyViolation newViolation : newViolations) {
@@ -507,7 +507,7 @@ public class CelPolicyEngine {
     }
 
     // TODO: Move to PolicyQueryManager
-    private static List<PolicyViolation> reconcileViolations(final QueryManager qm, final List<PolicyViolation> violations) {
+    private static List<PolicyViolation> reconcileViolations(final QueryManager qm, final Component component, final List<PolicyViolation> violations) {
         final var newViolations = new ArrayList<PolicyViolation>();
 
         final Transaction trx = qm.getPersistenceManager().currentTransaction();
@@ -543,9 +543,9 @@ public class CelPolicyEngine {
             }
 
             final Query<PolicyViolation> deleteQuery = qm.getPersistenceManager().newQuery(PolicyViolation.class);
-            deleteQuery.setFilter("!:ids.contains(id)");
+            deleteQuery.setFilter("component == :component && !:ids.contains(id)");
             try {
-                final long violationsDeleted = deleteQuery.deletePersistentAll(violationIdsToKeep);
+                final long violationsDeleted = deleteQuery.deletePersistentAll(component, violationIdsToKeep);
                 LOGGER.info("Deleted %s outdated violations".formatted(violationsDeleted)); // TODO: Change to debug; Add component UUID
             } finally {
                 deleteQuery.closeAll();
