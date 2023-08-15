@@ -90,10 +90,15 @@ public class PolicyConditionResource extends AlpineResource {
                         //   in their script the errors were found. The exception provides that info.
                         return Response.status(Response.Status.BAD_REQUEST).entity("The provided CEL expression is invalid: %s".formatted(e.getMessage())).build();
                     }
+
+                    if (jsonPolicyCondition.getViolationType() == null) {
+                        return Response.status(Response.Status.BAD_REQUEST).entity("Expression conditions must define a violation type").build();
+                    }
                 }
 
                 final PolicyCondition pc = qm.createPolicyCondition(policy, jsonPolicyCondition.getSubject(),
-                        jsonPolicyCondition.getOperator(), StringUtils.trimToNull(jsonPolicyCondition.getValue()));
+                        jsonPolicyCondition.getOperator(), StringUtils.trimToNull(jsonPolicyCondition.getValue()),
+                        jsonPolicyCondition.getViolationType());
                 return Response.status(Response.Status.CREATED).entity(pc).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity("The UUID of the policy could not be found.").build();

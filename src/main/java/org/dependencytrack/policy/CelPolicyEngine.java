@@ -166,7 +166,7 @@ public class CelPolicyEngine {
             //
             // What we want to avoid is loading data we don't need, and loading it multiple times.
             // Instead, only load what's really needed, and only do so once.
-            LOGGER.info("Determining evaluation requirements for component %s and %d policy conditions"  // TODO: Change to debug
+            LOGGER.debug("Determining evaluation requirements for component %s and %d policy conditions"
                     .formatted(componentUuid, conditionScriptPairs.size()));
             final Set<Requirement> requirements = conditionScriptPairs.stream()
                     .map(Pair::getRight)
@@ -175,7 +175,7 @@ public class CelPolicyEngine {
                     .collect(Collectors.toSet());
 
             // Prepare the script arguments according to the requirements gathered before.
-            LOGGER.info("Building script arguments for component %s and requirements %s"  // TODO: Change to debug
+            LOGGER.debug("Building script arguments for component %s and requirements %s"
                     .formatted(componentUuid, requirements));
             final Map<String, Object> scriptArgs = Map.of(
                     "component", mapComponent(qm, component, requirements),
@@ -183,12 +183,14 @@ public class CelPolicyEngine {
                     "vulns", loadVulnerabilities(qm, component, requirements)
             );
 
-            LOGGER.info("Evaluating component %s against %d applicable policy conditions"  // TODO: Change to debug
+            LOGGER.debug("Evaluating component %s against %d applicable policy conditions"
                     .formatted(componentUuid, conditionScriptPairs.size()));
             final var conditionsViolated = new HashSet<PolicyCondition>();
             for (final Pair<PolicyCondition, CelPolicyScript> conditionScriptPair : conditionScriptPairs) {
                 final PolicyCondition condition = conditionScriptPair.getLeft();
                 final CelPolicyScript script = conditionScriptPair.getRight();
+                LOGGER.debug("Executing script for policy condition %s with arguments: %s"
+                        .formatted(condition.getUuid(), scriptArgs));
 
                 try {
                     if (script.execute(scriptArgs)) {
@@ -201,7 +203,7 @@ public class CelPolicyEngine {
 
             // Group the detected condition violations by policy. Necessary to be able to evaluate
             // each policy's operator (ANY, ALL).
-            LOGGER.info("Detected violation of %d policy conditions for component %s; Evaluating policy operators"  // TODO: Change to debug
+            LOGGER.debug("Detected violation of %d policy conditions for component %s; Evaluating policy operators"
                     .formatted(conditionsViolated.size(), componentUuid));
             final Map<Policy, List<PolicyCondition>> violatedConditionsByPolicy = conditionsViolated.stream()
                     .collect(Collectors.groupingBy(PolicyCondition::getPolicy));
@@ -221,7 +223,7 @@ public class CelPolicyEngine {
                                         final var violation = new PolicyViolation();
                                         violation.setComponent(component);
                                         violation.setPolicyCondition(condition);
-                                        violation.setType(determineViolationType(condition.getSubject()));
+                                        violation.setType(condition.getViolationType());
                                         violation.setTimestamp(new Date());
                                         return violation;
                                     });
@@ -246,7 +248,7 @@ public class CelPolicyEngine {
                     .register(Metrics.getRegistry()));
         }
 
-        LOGGER.info("Policy evaluation completed for component %s".formatted(componentUuid));  // TODO: Change to debug
+        LOGGER.debug("Policy evaluation completed for component %s".formatted(componentUuid));
     }
 
     // TODO: Move to PolicyQueryManager
@@ -385,6 +387,8 @@ public class CelPolicyEngine {
                     licenseGroupQuery.closeAll();
                 }
             }
+
+            builder.setLicense(licenseBuilder);
         }
 
         return builder.build();
@@ -490,20 +494,6 @@ public class CelPolicyEngine {
         return vulnBuilders.stream()
                 .map(Vulnerability.Builder::build)
                 .toList();
-    }
-
-    private static PolicyViolation.Type determineViolationType(final PolicyCondition.Subject subject) {
-        if (subject == null) {
-            return null;
-        }
-        return switch (subject) {
-            case CWE, SEVERITY, VULNERABILITY_ID -> PolicyViolation.Type.SECURITY;
-            case AGE, COORDINATES, PACKAGE_URL, CPE, SWID_TAGID, COMPONENT_HASH, VERSION, VERSION_DISTANCE ->
-                    PolicyViolation.Type.OPERATIONAL;
-            case LICENSE, LICENSE_GROUP -> PolicyViolation.Type.LICENSE;
-            case EXPRESSION ->
-                    PolicyViolation.Type.OPERATIONAL; // TODO: Need a way to determine this dynamically (or based on user config)
-        };
     }
 
     // TODO: Move to PolicyQueryManager
