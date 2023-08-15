@@ -215,6 +215,11 @@
             <artifactId>protobuf-java</artifactId>
             <version>${lib.protobuf-java.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>${lib.protobuf-java.version}</version>
+        </dependency>
         <!-- Lucene -->
         <dependency>
             <groupId>org.apache.lucene</groupId>

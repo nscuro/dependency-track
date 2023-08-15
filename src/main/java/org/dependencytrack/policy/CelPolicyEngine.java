@@ -21,7 +21,7 @@ package org.dependencytrack.policy;
 import alpine.common.logging.Logger;
 import alpine.common.metrics.Metrics;
 import com.github.packageurl.PackageURL;
-import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 import io.micrometer.core.instrument.Timer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dependencytrack.model.Component;
@@ -126,7 +126,7 @@ public class CelPolicyEngine {
             // Compiled scripts are cached in-memory by CelPolicyScriptHost, so if the same script
             // is encountered for multiple components (possibly concurrently), the compilation is
             // a one-time effort.
-            LOGGER.info("Compiling policy scripts for component %s".formatted(componentUuid)); // TODO: Change to debug
+            LOGGER.debug("Compiling policy scripts for component %s".formatted(componentUuid));
             final List<Pair<PolicyCondition, CelPolicyScript>> conditionScriptPairs = policies.stream()
                     .map(Policy::getPolicyConditions)
                     .flatMap(Collection::stream)
@@ -349,6 +349,7 @@ public class CelPolicyEngine {
                         .map(PackageURL::canonicalize)
                         .orElse(""))
                 .setSwidTagId(trimToEmpty(component.getSwidTagId()))
+                .setInternal(component.isInternal())
                 .setMd5(trimToEmpty(component.getMd5()))
                 .setSha1(trimToEmpty(component.getSha1()))
                 .setSha256(trimToEmpty(component.getSha256()))
@@ -480,9 +481,9 @@ public class CelPolicyEngine {
                     Optional.ofNullable(v.getCvssV3ExploitabilitySubScore()).map(BigDecimal::doubleValue).ifPresent(builder::setCvssv3ExploitabilitySubscore);
                     Optional.ofNullable(v.getEpssScore()).map(BigDecimal::doubleValue).ifPresent(builder::setEpssScore);
                     Optional.ofNullable(v.getEpssPercentile()).map(BigDecimal::doubleValue).ifPresent(builder::setEpssPercentile);
-                    Optional.ofNullable(v.getCreated()).map(Date::getSeconds).map(Timestamp.newBuilder()::setSeconds).ifPresent(builder::setCreated);
-                    Optional.ofNullable(v.getPublished()).map(Date::getSeconds).map(Timestamp.newBuilder()::setSeconds).ifPresent(builder::setPublished);
-                    Optional.ofNullable(v.getUpdated()).map(Date::getSeconds).map(Timestamp.newBuilder()::setSeconds).ifPresent(builder::setUpdated);
+                    Optional.ofNullable(v.getCreated()).map(Timestamps::fromDate).ifPresent(builder::setCreated);
+                    Optional.ofNullable(v.getPublished()).map(Timestamps::fromDate).ifPresent(builder::setPublished);
+                    Optional.ofNullable(v.getUpdated()).map(Timestamps::fromDate).ifPresent(builder::setUpdated);
                     return builder;
                 })
                 .toList();
@@ -536,7 +537,7 @@ public class CelPolicyEngine {
             deleteQuery.setFilter("component == :component && !:ids.contains(id)");
             try {
                 final long violationsDeleted = deleteQuery.deletePersistentAll(component, violationIdsToKeep);
-                LOGGER.info("Deleted %s outdated violations".formatted(violationsDeleted)); // TODO: Change to debug; Add component UUID
+                LOGGER.debug("Deleted %s outdated violations".formatted(violationsDeleted)); // TODO: Add component UUID
             } finally {
                 deleteQuery.closeAll();
             }

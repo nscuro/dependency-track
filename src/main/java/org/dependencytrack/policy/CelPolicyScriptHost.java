@@ -117,8 +117,21 @@ public class CelPolicyScriptHost {
                 .map(Type::getMessageType)
                 .collect(Collectors.toSet());
 
-        // For project, license, license groups, vulnerabilities, and vulnerability aliases,
-        // it is enough to check if an expression of the respective type is present in the AST.
+        // For the majority of cases, it is sufficient to check whether a given type
+        // is present in the type map constructed by the type checker. This works as long
+        // as a field of the respective type is accessed in the script, e.g.
+        //
+        //   component.license.name
+        //
+        // will result in the License type being present in the type map. However, it does NOT
+        // work when only the presence of a field is checked in the script, e.g.
+        //
+        //   has(component.license)
+        //
+        // will result in the License type NOT being present in the type map.
+        //
+        // To cover this limitation, we could implement a visitor that traverses the AST
+        // and keeps track of which fields are access for which type.
         if (typeNames.contains(Project.getDescriptor().getFullName())) {
             requirements.add(Requirement.PROJECT);
         }

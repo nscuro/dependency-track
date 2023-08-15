@@ -27,25 +27,26 @@ option java_package = "org.dependencytrack.proto.policy.v1";
 
 message Component {
   string uuid = 1;
-  string group = 2;
+  optional string group = 2;
   string name = 3;
   string version = 4;
-  string cpe = 5;
-  string purl = 6;
-  string swid_tag_id = 7;
-  License license = 8;
-  string md5 = 20;
-  string sha1 = 21;
-  string sha256 = 22;
-  string sha384 = 23;
-  string sha512 = 24;
-  string sha3_256 = 25;
-  string sha3_384 = 26;
-  string sha3_512 = 27;
-  string blake2b_256 = 28;
-  string blake2b_384 = 29;
-  string blake2b_512 = 30;
-  string blake3 = 31;
+  optional string cpe = 5;
+  optional string purl = 6;
+  optional string swid_tag_id = 7;
+  optional bool internal = 8;
+  optional License license = 9;
+  optional string md5 = 20;
+  optional string sha1 = 21;
+  optional string sha256 = 22;
+  optional string sha384 = 23;
+  optional string sha512 = 24;
+  optional string sha3_256 = 25;
+  optional string sha3_384 = 26;
+  optional string sha3_512 = 27;
+  optional string blake2b_256 = 28;
+  optional string blake2b_384 = 29;
+  optional string blake2b_512 = 30;
+  optional string blake3 = 31;
 }
 
 message License {
@@ -66,13 +67,13 @@ message License {
 
 message Project {
   string uuid = 1;
-  string group = 2;
+  optional string group = 2;
   string name = 3;
-  string version = 4;
+  optional string version = 4;
   repeated string tags = 5;
-  string cpe = 6;
-  string purl = 7;
-  string swid_tag_id = 8;
+  optional string cpe = 6;
+  optional string purl = 7;
+  optional string swid_tag_id = 8;
 }
 
 message Vulnerability {
@@ -81,20 +82,20 @@ message Vulnerability {
   string source = 3;
   repeated Alias aliases = 4;
   repeated int32 cwes = 5;
-  google.protobuf.Timestamp created = 6;
-  google.protobuf.Timestamp published = 7;
-  google.protobuf.Timestamp updated = 8;
+  optional google.protobuf.Timestamp created = 6;
+  optional google.protobuf.Timestamp published = 7;
+  optional google.protobuf.Timestamp updated = 8;
   string severity = 20;
-  double cvssv2_base_score = 21;
-  double cvssv2_impact_subscore = 22;
-  double cvssv2_exploitability_subscore = 23;
-  string cvssv2_vector = 24;
-  double cvssv3_base_score = 25;
-  double cvssv3_impact_subscore = 26;
-  double cvssv3_exploitability_subscore = 27;
-  string cvssv3_vector = 28;
-  double epss_score = 29;
-  double epss_percentile = 30;
+  optional double cvssv2_base_score = 21;
+  optional double cvssv2_impact_subscore = 22;
+  optional double cvssv2_exploitability_subscore = 23;
+  optional string cvssv2_vector = 24;
+  optional double cvssv3_base_score = 25;
+  optional double cvssv3_impact_subscore = 26;
+  optional double cvssv3_exploitability_subscore = 27;
+  optional string cvssv3_vector = 28;
+  optional double epss_score = 29;
+  optional double epss_percentile = 30;
 
   message Alias {
     string id = 1;
