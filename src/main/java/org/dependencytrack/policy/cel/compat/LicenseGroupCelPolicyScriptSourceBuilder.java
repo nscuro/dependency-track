@@ -16,17 +16,18 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy.cel;
+package org.dependencytrack.policy.cel.compat;
 
 import org.dependencytrack.model.PolicyCondition;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
-class VulnerabilityIdCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
+public class LicenseGroupCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
+
     @Override
     public String apply(final PolicyCondition policyCondition) {
         final String scriptSrc = """
-                vulns.exists(v, v.id == "%s")
+                component.resolved_license.groups.exists(group, group.uuid == "%s")
                 """.formatted(escapeJson(policyCondition.getValue()));
 
         if (policyCondition.getOperator() == PolicyCondition.Operator.IS) {

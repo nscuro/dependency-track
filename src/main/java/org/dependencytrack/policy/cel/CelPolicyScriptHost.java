@@ -131,7 +131,7 @@ public class CelPolicyScriptHost {
         // will result in the License type NOT being present in the type map.
         //
         // To cover this limitation, we could implement a visitor that traverses the AST
-        // and keeps track of which fields are access for which type.
+        // and keeps track of which fields are accessed for which type.
         if (typeNames.contains(Project.getDescriptor().getFullName())) {
             requirements.add(Requirement.PROJECT);
 

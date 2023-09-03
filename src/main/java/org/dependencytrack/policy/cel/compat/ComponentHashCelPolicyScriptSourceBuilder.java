@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy.cel;
+package org.dependencytrack.policy.cel.compat;
 
 import alpine.common.logging.Logger;
 import org.cyclonedx.model.Hash;
@@ -25,7 +25,7 @@ import org.json.JSONObject;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
-class ComponentHashCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
+public class ComponentHashCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(ComponentHashCelPolicyScriptSourceBuilder.class);
 

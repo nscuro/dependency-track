@@ -16,23 +16,23 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy.cel;
+package org.dependencytrack.policy.cel.compat;
 
 import org.dependencytrack.model.PolicyCondition;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
-public class LicenseGroupCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
+public class PackageUrlCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
 
     @Override
     public String apply(final PolicyCondition policyCondition) {
         final String scriptSrc = """
-                component.resolved_license.groups.exists(group, group.uuid == "%s")
+                component.purl.matches("%s")
                 """.formatted(escapeJson(policyCondition.getValue()));
 
-        if (policyCondition.getOperator() == PolicyCondition.Operator.IS) {
+        if (policyCondition.getOperator() == PolicyCondition.Operator.MATCHES) {
             return scriptSrc;
-        } else if (policyCondition.getOperator() == PolicyCondition.Operator.IS_NOT) {
+        } else if (policyCondition.getOperator() == PolicyCondition.Operator.NO_MATCH) {
             return "!" + scriptSrc;
         }
 

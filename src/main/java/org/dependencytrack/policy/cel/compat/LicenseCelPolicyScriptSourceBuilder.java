@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy.cel;
+package org.dependencytrack.policy.cel.compat;
 
 import org.dependencytrack.model.PolicyCondition;
 
