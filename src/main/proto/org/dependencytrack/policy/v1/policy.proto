@@ -26,15 +26,49 @@ option java_multiple_files = true;
 option java_package = "org.dependencytrack.proto.policy.v1";
 
 message Component {
+
+  // UUID of the component.
   string uuid = 1;
+
+  // Group / namespace of the component.
   optional string group = 2;
+
+  // Name of the component.
   string name = 3;
+
+  // Version of the component.
   string version = 4;
-  optional string cpe = 5;
-  optional string purl = 6;
-  optional string swid_tag_id = 7;
-  optional bool internal = 8;
-  optional License license = 9;
+
+  // Classifier / type of the component.
+  // May be any of:
+  // - APPLICATION
+  // - CONTAINER
+  // - DEVICE
+  // - FILE
+  // - FIRMWARE
+  // - FRAMEWORK
+  // - LIBRARY
+  // - OPERATING_SYSTEM
+  optional string classifier = 5;
+
+  // CPE of the component.
+  // https://csrc.nist.gov/projects/security-content-automation-protocol/specifications/cpe
+  optional string cpe = 6;
+
+  // Package URL of the component.
+  // https://github.com/package-url/purl-spec
+  optional string purl = 7;
+
+  // SWID tag ID of the component.
+  // https://csrc.nist.gov/projects/Software-Identification-SWID
+  optional string swid_tag_id = 8;
+
+  // Whether the component is internal to the organization.
+  optional bool is_internal = 9;
+
+  // Whether the component is a direct dependency of the project.
+  optional bool is_direct_dependency = 10;
+
   optional string md5 = 20;
   optional string sha1 = 21;
   optional string sha256 = 22;
@@ -47,6 +81,10 @@ message Component {
   optional string blake2b_384 = 29;
   optional string blake2b_512 = 30;
   optional string blake3 = 31;
+
+  optional string license_name = 50;
+  optional string license_expression = 51;
+  optional License resolved_license = 52;
 }
 
 message License {
@@ -70,10 +108,21 @@ message Project {
   optional string group = 2;
   string name = 3;
   optional string version = 4;
-  repeated string tags = 5;
-  optional string cpe = 6;
-  optional string purl = 7;
-  optional string swid_tag_id = 8;
+  optional string classifier = 5;
+  bool is_active = 6;
+  repeated string tags = 7;
+  repeated Property properties = 8;
+  optional string cpe = 9;
+  optional string purl = 10;
+  optional string swid_tag_id = 11;
+  optional google.protobuf.Timestamp last_bom_import = 12;
+
+  message Property {
+    string group = 1;
+    string name = 2;
+    optional string value = 3;
+    string type = 4;
+  }
 }
 
 message Vulnerability {
@@ -94,8 +143,12 @@ message Vulnerability {
   optional double cvssv3_impact_subscore = 26;
   optional double cvssv3_exploitability_subscore = 27;
   optional string cvssv3_vector = 28;
-  optional double epss_score = 29;
-  optional double epss_percentile = 30;
+  optional double owasp_rr_likelihood_score = 29;
+  optional double owasp_rr_technical_impact_score = 30;
+  optional double owasp_rr_business_impact_score = 31;
+  optional string owasp_rr_vector = 32;
+  optional double epss_score = 33;
+  optional double epss_percentile = 34;
 
   message Alias {
     string id = 1;

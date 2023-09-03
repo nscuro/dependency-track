@@ -2,6 +2,7 @@ package org.dependencytrack.policy;
 
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.model.Component;
+import org.dependencytrack.model.ComponentIdentity;
 import org.dependencytrack.model.License;
 import org.dependencytrack.model.LicenseGroup;
 import org.dependencytrack.model.Policy;
@@ -29,12 +30,15 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
     @Test
     public void test() {
         final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
-        qm.createPolicyCondition(policy, PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
-                "critical" in project.tags
-                    && component.name == "bar"
-                    && vulns.exists(v, v.source == "SNYK")
-                    && component.license.groups.exists(lg, lg.name == "Permissive")
-                """);
+        final PolicyCondition policyCondition = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        "critical" in project.tags
+                            && component.name == "bar"
+                            && vulns.exists(v, v.source == "SNYK")
+                            && component.resolved_license.groups.exists(lg, lg.name == "Permissive")
+                        """);
+        policyCondition.setViolationType(PolicyViolation.Type.OPERATIONAL);
+        qm.persist(policyCondition);
 
         final var policy2 = qm.createPolicy("policy2", Policy.Operator.ALL, Policy.ViolationState.WARN);
         qm.createPolicyCondition(policy2, PolicyCondition.Subject.VULNERABILITY_ID, PolicyCondition.Operator.IS, "CVE-123");
@@ -96,6 +100,44 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
 
         final List<PolicyViolation> violations = qm.getAllPolicyViolations(component);
         assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    public void testIsDirectDependency() {
+        final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
+        final PolicyCondition policyCondition = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        component.is_direct_dependency
+                        """);
+        policyCondition.setViolationType(PolicyViolation.Type.OPERATIONAL);
+        qm.persist(policyCondition);
+
+        final var project = new Project();
+        project.setName("foo");
+        qm.persist(project);
+
+        final var componentA = new Component();
+        componentA.setProject(project);
+        componentA.setName("bar");
+        qm.persist(componentA);
+
+        final var componentB = new Component();
+        componentB.setProject(project);
+        componentB.setName("baz");
+        qm.persist(componentB);
+
+        project.setDirectDependencies("[%s]".formatted(new ComponentIdentity(componentA).toJSON()));
+        qm.persist(project);
+        componentA.setDirectDependencies("[%s]".formatted(new ComponentIdentity(componentB).toJSON()));
+        qm.persist(componentA);
+
+        final var policyEngine = new CelPolicyEngine();
+
+        policyEngine.evaluateComponent(componentA.getUuid());
+        assertThat(qm.getAllPolicyViolations(componentA)).hasSize(1);
+
+        policyEngine.evaluateComponent(componentB.getUuid());
+        assertThat(qm.getAllPolicyViolations(componentB)).isEmpty();
     }
 
     @Test

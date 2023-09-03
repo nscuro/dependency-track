@@ -29,22 +29,22 @@ public class LicenseCelPolicyScriptSourceBuilder implements CelPolicyScriptSourc
         if ("unresolved".equals(policyCondition.getValue())) {
             if (policyCondition.getOperator() == PolicyCondition.Operator.IS) {
                 return """
-                        !has(component.license)
+                        !has(component.resolved_license)
                         """;
             } else if (policyCondition.getOperator() == PolicyCondition.Operator.IS_NOT) {
                 return """
-                        has(component.license)
+                        has(component.resolved_license)
                         """;
             }
         } else {
             final String escapedLicenseUuid = escapeJson(policyCondition.getValue());
             if (policyCondition.getOperator() == PolicyCondition.Operator.IS) {
                 return """
-                        component.license.uuid == "%s"
+                        component.resolved_license.uuid == "%s"
                         """.formatted(escapedLicenseUuid);
             } else if (policyCondition.getOperator() == PolicyCondition.Operator.IS_NOT) {
                 return """
-                        component.license.uuid != "%s"
+                        component.resolved_license.uuid != "%s"
                         """.formatted(escapedLicenseUuid);
             }
         }

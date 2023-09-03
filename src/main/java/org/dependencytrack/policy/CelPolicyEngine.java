@@ -20,6 +20,10 @@ package org.dependencytrack.policy;
 
 import alpine.common.logging.Logger;
 import alpine.common.metrics.Metrics;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.packageurl.PackageURL;
 import com.google.protobuf.util.Timestamps;
 import io.micrometer.core.instrument.Timer;
@@ -59,10 +63,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.dependencytrack.policy.CelPolicyLibrary.VAR_COMPONENT;
+import static org.dependencytrack.policy.CelPolicyLibrary.VAR_PROJECT;
+import static org.dependencytrack.policy.CelPolicyLibrary.VAR_VULNERABILITIES;
 
 public class CelPolicyEngine {
 
     private static final Logger LOGGER = Logger.getLogger(CelPolicyEngine.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Map<Subject, CelPolicyScriptSourceBuilder> SCRIPT_BUILDERS = Map.of(
             Subject.CPE, new CpeCelPolicyScriptSourceBuilder(),
             Subject.COMPONENT_HASH, new ComponentHashCelPolicyScriptSourceBuilder(),
@@ -178,9 +186,9 @@ public class CelPolicyEngine {
             LOGGER.debug("Building script arguments for component %s and requirements %s"
                     .formatted(componentUuid, requirements));
             final Map<String, Object> scriptArgs = Map.of(
-                    "component", mapComponent(qm, component, requirements),
-                    "project", mapProject(component.getProject(), requirements),
-                    "vulns", loadVulnerabilities(qm, component, requirements)
+                    VAR_COMPONENT, mapComponent(qm, component, requirements),
+                    VAR_PROJECT, mapProject(component.getProject(), requirements),
+                    VAR_VULNERABILITIES, loadVulnerabilities(qm, component, requirements)
             );
 
             LOGGER.debug("Evaluating component %s against %d applicable policy conditions"
@@ -339,29 +347,43 @@ public class CelPolicyEngine {
     private static org.dependencytrack.proto.policy.v1.Component mapComponent(final QueryManager qm,
                                                                               final org.dependencytrack.model.Component component,
                                                                               final Set<Requirement> requirements) {
-        final org.dependencytrack.proto.policy.v1.Component.Builder builder = org.dependencytrack.proto.policy.v1.Component.newBuilder()
-                .setUuid(Optional.ofNullable(component.getUuid()).map(UUID::toString).orElse(""))
-                .setGroup(trimToEmpty(component.getGroup()))
-                .setName(trimToEmpty(component.getName()))
-                .setVersion(trimToEmpty(component.getVersion()))
-                .setCpe(trimToEmpty(component.getCpe()))
-                .setPurl(Optional.ofNullable(component.getPurl())
-                        .map(PackageURL::canonicalize)
-                        .orElse(""))
-                .setSwidTagId(trimToEmpty(component.getSwidTagId()))
-                .setInternal(component.isInternal())
-                .setMd5(trimToEmpty(component.getMd5()))
-                .setSha1(trimToEmpty(component.getSha1()))
-                .setSha256(trimToEmpty(component.getSha256()))
-                .setSha384(trimToEmpty(component.getSha384()))
-                .setSha512(trimToEmpty(component.getSha512()))
-                .setSha3256(trimToEmpty(component.getSha3_256()))
-                .setSha3384(trimToEmpty(component.getSha3_384()))
-                .setSha3512(trimToEmpty(component.getSha3_512()))
-                .setBlake2B256(trimToEmpty(component.getBlake2b_256()))
-                .setBlake2B384(trimToEmpty(component.getBlake2b_384()))
-                .setBlake2B512(trimToEmpty(component.getBlake2b_512()))
-                .setBlake3(trimToEmpty(component.getBlake3()));
+        final org.dependencytrack.proto.policy.v1.Component.Builder builder =
+                org.dependencytrack.proto.policy.v1.Component.newBuilder()
+                        .setUuid(Optional.ofNullable(component.getUuid()).map(UUID::toString).orElse(""))
+                        .setGroup(trimToEmpty(component.getGroup()))
+                        .setName(trimToEmpty(component.getName()))
+                        .setVersion(trimToEmpty(component.getVersion()))
+                        .setClassifier(Optional.ofNullable(component.getClassifier()).map(Enum::name).orElse(""))
+                        .setCpe(trimToEmpty(component.getCpe()))
+                        .setPurl(Optional.ofNullable(component.getPurl()).map(PackageURL::canonicalize).orElse(""))
+                        .setSwidTagId(trimToEmpty(component.getSwidTagId()))
+                        .setIsInternal(component.isInternal())
+                        .setMd5(trimToEmpty(component.getMd5()))
+                        .setSha1(trimToEmpty(component.getSha1()))
+                        .setSha256(trimToEmpty(component.getSha256()))
+                        .setSha384(trimToEmpty(component.getSha384()))
+                        .setSha512(trimToEmpty(component.getSha512()))
+                        .setSha3256(trimToEmpty(component.getSha3_256()))
+                        .setSha3384(trimToEmpty(component.getSha3_384()))
+                        .setSha3512(trimToEmpty(component.getSha3_512()))
+                        .setBlake2B256(trimToEmpty(component.getBlake2b_256()))
+                        .setBlake2B384(trimToEmpty(component.getBlake2b_384()))
+                        .setBlake2B512(trimToEmpty(component.getBlake2b_512()))
+                        .setBlake3(trimToEmpty(component.getBlake3()));
+
+        if (component.getProject().getDirectDependencies() != null) {
+            try {
+                final ArrayNode dependencyArray = OBJECT_MAPPER.readValue(component.getProject().getDirectDependencies(), ArrayNode.class);
+                for (final JsonNode dependencyNode : dependencyArray) {
+                    if (dependencyNode.get("uuid") != null && dependencyNode.get("uuid").asText().equals(component.getUuid().toString())) {
+                        builder.setIsDirectDependency(true);
+                        break;
+                    }
+                }
+            } catch (JacksonException | RuntimeException e) {
+                LOGGER.warn("Failed to parse direct dependencies of project %s".formatted(component.getProject().getUuid()), e);
+            }
+        }
 
         if (requirements.contains(Requirement.LICENSE) && component.getResolvedLicense() != null) {
             final License.Builder licenseBuilder = License.newBuilder()
@@ -389,7 +411,7 @@ public class CelPolicyEngine {
                 }
             }
 
-            builder.setLicense(licenseBuilder);
+            builder.setResolvedLicense(licenseBuilder);
         }
 
         return builder.build();
@@ -401,20 +423,22 @@ public class CelPolicyEngine {
             return org.dependencytrack.proto.policy.v1.Project.newBuilder().build();
         }
 
-        return org.dependencytrack.proto.policy.v1.Project.newBuilder()
-                .setUuid(Optional.ofNullable(project.getUuid()).map(UUID::toString).orElse(""))
-                .setGroup(trimToEmpty(project.getGroup()))
-                .setName(trimToEmpty(project.getName()))
-                .setVersion(trimToEmpty(project.getVersion()))
-                .addAllTags(project.getTags().stream()
-                        .map(Tag::getName)
-                        .toList())
-                .setCpe(trimToEmpty(project.getCpe()))
-                .setPurl(Optional.ofNullable(project.getPurl())
-                        .map(PackageURL::canonicalize)
-                        .orElse(""))
-                .setSwidTagId(trimToEmpty(project.getSwidTagId()))
-                .build();
+        final org.dependencytrack.proto.policy.v1.Project.Builder builder =
+                org.dependencytrack.proto.policy.v1.Project.newBuilder()
+                        .setUuid(Optional.ofNullable(project.getUuid()).map(UUID::toString).orElse(""))
+                        .setGroup(trimToEmpty(project.getGroup()))
+                        .setName(trimToEmpty(project.getName()))
+                        .setVersion(trimToEmpty(project.getVersion()))
+                        .addAllTags(project.getTags().stream().map(Tag::getName).toList())
+                        .setCpe(trimToEmpty(project.getCpe()))
+                        .setPurl(Optional.ofNullable(project.getPurl()).map(PackageURL::canonicalize).orElse(""))
+                        .setSwidTagId(trimToEmpty(project.getSwidTagId()));
+
+        if (requirements.contains(Requirement.PROJECT_PROPERTIES)) {
+            // TODO
+        }
+
+        return builder.build();
     }
 
     private static List<Vulnerability> loadVulnerabilities(final QueryManager qm,
@@ -471,6 +495,7 @@ public class CelPolicyEngine {
                             .setSource(trimToEmpty(v.getSource()))
                             .setCvssv2Vector(trimToEmpty(v.getCvssV2Vector()))
                             .setCvssv3Vector(trimToEmpty(v.getCvssV3Vector()))
+                            .setOwaspRrVector(trimToEmpty(v.getOwaspRRVector()))
                             .setSeverity(v.getSeverity().name());
                     Optional.ofNullable(v.getCwes()).ifPresent(builder::addAllCwes);
                     Optional.ofNullable(v.getCvssV2BaseScore()).map(BigDecimal::doubleValue).ifPresent(builder::setCvssv2BaseScore);
@@ -479,6 +504,9 @@ public class CelPolicyEngine {
                     Optional.ofNullable(v.getCvssV3BaseScore()).map(BigDecimal::doubleValue).ifPresent(builder::setCvssv3BaseScore);
                     Optional.ofNullable(v.getCvssV3ImpactSubScore()).map(BigDecimal::doubleValue).ifPresent(builder::setCvssv3ImpactSubscore);
                     Optional.ofNullable(v.getCvssV3ExploitabilitySubScore()).map(BigDecimal::doubleValue).ifPresent(builder::setCvssv3ExploitabilitySubscore);
+                    Optional.ofNullable(v.getOwaspRRLikelihoodScore()).map(BigDecimal::doubleValue).ifPresent(builder::setOwaspRrLikelihoodScore);
+                    Optional.ofNullable(v.getOwaspRRTechnicalImpactScore()).map(BigDecimal::doubleValue).ifPresent(builder::setOwaspRrTechnicalImpactScore);
+                    Optional.ofNullable(v.getOwaspRRBusinessImpactScore()).map(BigDecimal::doubleValue).ifPresent(builder::setOwaspRrBusinessImpactScore);
                     Optional.ofNullable(v.getEpssScore()).map(BigDecimal::doubleValue).ifPresent(builder::setEpssScore);
                     Optional.ofNullable(v.getEpssPercentile()).map(BigDecimal::doubleValue).ifPresent(builder::setEpssPercentile);
                     Optional.ofNullable(v.getCreated()).map(Timestamps::fromDate).ifPresent(builder::setCreated);

@@ -134,6 +134,10 @@ public class CelPolicyScriptHost {
         // and keeps track of which fields are access for which type.
         if (typeNames.contains(Project.getDescriptor().getFullName())) {
             requirements.add(Requirement.PROJECT);
+
+            if (typeNames.contains(Project.Property.getDescriptor().getFullName())) {
+                requirements.add(Requirement.PROJECT_PROPERTIES);
+            }
         }
         if (typeNames.contains(License.getDescriptor().getFullName())) {
             requirements.add(Requirement.LICENSE);

@@ -32,6 +32,7 @@ public class CelPolicyScript {
         LICENSE,
         LICENSE_GROUPS,
         PROJECT,
+        PROJECT_PROPERTIES,
         VULNERABILITIES,
         VULNERABILITY_ALIASES
     }

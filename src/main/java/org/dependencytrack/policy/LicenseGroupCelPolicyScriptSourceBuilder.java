@@ -27,7 +27,7 @@ public class LicenseGroupCelPolicyScriptSourceBuilder implements CelPolicyScript
     @Override
     public String apply(final PolicyCondition policyCondition) {
         final String scriptSrc = """
-                component.license.groups.exists(group, group.uuid == "%s")
+                component.resolved_license.groups.exists(group, group.uuid == "%s")
                 """.formatted(escapeJson(policyCondition.getValue()));
 
         if (policyCondition.getOperator() == PolicyCondition.Operator.IS) {

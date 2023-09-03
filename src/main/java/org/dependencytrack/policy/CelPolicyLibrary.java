@@ -18,6 +18,7 @@
  */
 package org.dependencytrack.policy;
 
+import com.google.api.expr.v1alpha1.Type;
 import org.dependencytrack.proto.policy.v1.Component;
 import org.dependencytrack.proto.policy.v1.License;
 import org.dependencytrack.proto.policy.v1.Project;
@@ -32,19 +33,30 @@ import java.util.List;
 
 public class CelPolicyLibrary implements Library {
 
+    static final String VAR_COMPONENT = "component";
+    static final String VAR_PROJECT = "project";
+    static final String VAR_VULNERABILITIES = "vulns";
+
+    private static final Type TYPE_COMPONENT = Decls.newObjectType(Component.getDescriptor().getFullName());
+    private static final Type TYPE_PROJECT = Decls.newObjectType(Project.getDescriptor().getFullName());
+    private static final Type TYPE_VULNERABILITY = Decls.newObjectType(Vulnerability.getDescriptor().getFullName());
+    private static final Type TYPE_VULNERABILITIES = Decls.newListType(TYPE_VULNERABILITY);
+
     @Override
     public List<EnvOption> getCompileOptions() {
         return List.of(
                 EnvOption.declarations(
                         Decls.newVar(
-                                "component",
-                                Decls.newObjectType(Component.getDescriptor().getFullName())),
+                                VAR_COMPONENT,
+                                TYPE_COMPONENT
+                        ),
                         Decls.newVar(
-                                "project",
-                                Decls.newObjectType(Project.getDescriptor().getFullName())),
+                                VAR_PROJECT,
+                                TYPE_PROJECT
+                        ),
                         Decls.newVar(
-                                "vulns",
-                                Decls.newListType(Decls.newObjectType(Vulnerability.getDescriptor().getFullName()))
+                                VAR_VULNERABILITIES,
+                                TYPE_VULNERABILITIES
                         )
                 ),
                 EnvOption.types(
