@@ -25,7 +25,7 @@ import org.dependencytrack.event.PolicyEvaluationEvent;
 import org.dependencytrack.event.ProjectMetricsUpdateEvent;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Project;
-import org.dependencytrack.policy.CelPolicyEngine;
+import org.dependencytrack.policy.cel.CelPolicyEngine;
 
 import java.util.ArrayList;
 import java.util.List;

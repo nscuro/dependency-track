@@ -16,27 +16,11 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy;
+package org.dependencytrack.policy.cel;
 
 import org.dependencytrack.model.PolicyCondition;
 
-import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
+import java.util.function.Function;
 
-public class PackageUrlCelPolicyScriptSourceBuilder implements CelPolicyScriptSourceBuilder {
-
-    @Override
-    public String apply(final PolicyCondition policyCondition) {
-        final String scriptSrc = """
-                component.purl.matches("%s")
-                """.formatted(escapeJson(policyCondition.getValue()));
-
-        if (policyCondition.getOperator() == PolicyCondition.Operator.MATCHES) {
-            return scriptSrc;
-        } else if (policyCondition.getOperator() == PolicyCondition.Operator.NO_MATCH) {
-            return "!" + scriptSrc;
-        }
-
-        return null;
-    }
-
+interface CelPolicyScriptSourceBuilder extends Function<PolicyCondition, String> {
 }

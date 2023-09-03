@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy;
+package org.dependencytrack.policy.cel;
 
 import alpine.common.logging.Logger;
 import org.cyclonedx.model.Hash;

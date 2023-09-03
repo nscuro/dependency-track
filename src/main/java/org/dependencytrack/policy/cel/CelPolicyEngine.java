@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy;
+package org.dependencytrack.policy.cel;
 
 import alpine.common.logging.Logger;
 import alpine.common.metrics.Metrics;
@@ -37,7 +37,7 @@ import org.dependencytrack.model.PolicyViolation;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.Tag;
 import org.dependencytrack.persistence.QueryManager;
-import org.dependencytrack.policy.CelPolicyScript.Requirement;
+import org.dependencytrack.policy.cel.CelPolicyScript.Requirement;
 import org.dependencytrack.proto.policy.v1.License;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
 import org.dependencytrack.util.NotificationUtil;
@@ -63,9 +63,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.dependencytrack.policy.CelPolicyLibrary.VAR_COMPONENT;
-import static org.dependencytrack.policy.CelPolicyLibrary.VAR_PROJECT;
-import static org.dependencytrack.policy.CelPolicyLibrary.VAR_VULNERABILITIES;
+import static org.dependencytrack.policy.cel.CelPolicyLibrary.VAR_COMPONENT;
+import static org.dependencytrack.policy.cel.CelPolicyLibrary.VAR_PROJECT;
+import static org.dependencytrack.policy.cel.CelPolicyLibrary.VAR_VULNERABILITIES;
 
 public class CelPolicyEngine {
 

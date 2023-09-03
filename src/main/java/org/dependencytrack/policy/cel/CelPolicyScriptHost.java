@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.policy;
+package org.dependencytrack.policy.cel;
 
 import alpine.common.logging.Logger;
 import alpine.server.cache.CacheManager;
@@ -24,7 +24,7 @@ import com.google.api.expr.v1alpha1.CheckedExpr;
 import com.google.api.expr.v1alpha1.Type;
 import com.google.common.util.concurrent.Striped;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.dependencytrack.policy.CelPolicyScript.Requirement;
+import org.dependencytrack.policy.cel.CelPolicyScript.Requirement;
 import org.dependencytrack.proto.policy.v1.License;
 import org.dependencytrack.proto.policy.v1.Project;
 import org.dependencytrack.proto.policy.v1.Vulnerability;

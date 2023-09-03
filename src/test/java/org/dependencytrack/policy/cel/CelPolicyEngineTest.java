@@ -1,4 +1,4 @@
-package org.dependencytrack.policy;
+package org.dependencytrack.policy.cel;
 
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.model.Component;

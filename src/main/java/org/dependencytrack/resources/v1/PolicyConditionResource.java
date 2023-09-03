@@ -32,7 +32,7 @@ import org.dependencytrack.auth.Permissions;
 import org.dependencytrack.model.Policy;
 import org.dependencytrack.model.PolicyCondition;
 import org.dependencytrack.persistence.QueryManager;
-import org.dependencytrack.policy.CelPolicyScriptHost;
+import org.dependencytrack.policy.cel.CelPolicyScriptHost;
 import org.projectnessie.cel.tools.ScriptCreateException;
 
 import javax.validation.Validator;
