@@ -81,6 +81,10 @@ public class Policy implements Serializable {
     @Pattern(regexp = RegexSequence.Definition.PRINTABLE_CHARS, message = "The name may only contain printable characters")
     private String name;
 
+    @Persistent
+    @Column(name = "SCOPE", allowsNull = "true")
+    private PolicyScope scope = PolicyScope.COMPONENT; // TODO: Remove default, handle this for existing policies with DB migration.
+
     /**
      * The operator to use when evaluating conditions.
      */
@@ -156,6 +160,14 @@ public class Policy implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public PolicyScope getScope() {
+        return scope;
+    }
+
+    public void setScope(final PolicyScope scope) {
+        this.scope = scope;
     }
 
     public Operator getOperator() {

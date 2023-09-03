@@ -33,6 +33,7 @@ import org.dependencytrack.model.LicenseGroup;
 import org.dependencytrack.model.Policy;
 import org.dependencytrack.model.PolicyCondition;
 import org.dependencytrack.model.PolicyCondition.Subject;
+import org.dependencytrack.model.PolicyScope;
 import org.dependencytrack.model.PolicyViolation;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.Tag;
@@ -50,7 +51,6 @@ import org.dependencytrack.policy.cel.compat.SwidTagIdCelPolicyScriptSourceBuild
 import org.dependencytrack.policy.cel.compat.VulnerabilityIdCelPolicyScriptSourceBuilder;
 import org.dependencytrack.proto.policy.v1.License;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
-import org.dependencytrack.util.NotificationUtil;
 import org.projectnessie.cel.tools.ScriptCreateException;
 import org.projectnessie.cel.tools.ScriptException;
 
@@ -70,7 +70,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.dependencytrack.policy.cel.CelPolicyLibrary.VAR_COMPONENT;
@@ -132,7 +131,7 @@ public class CelPolicyEngine {
                 return;
             }
 
-            final List<Policy> policies = getApplicablePolicies(qm, component.getProject());
+            final List<Policy> policies = getApplicablePolicies(qm, component.getProject(), Set.of(PolicyScope.COMPONENT));
             if (policies.isEmpty()) {
                 // With no applicable policies, there's no way to resolve violations.
                 // As a compensation, simply delete all violations associated with the component.
@@ -230,25 +229,25 @@ public class CelPolicyEngine {
             // match the configured policy operator. When the operator is ALL, and not all conditions
             // of the policy were violated, we don't want to create any violations.
             final List<PolicyViolation> violations = violatedConditionsByPolicy.entrySet().stream()
-                    .flatMap(policyAndViolatedConditions -> {
+                    .map(policyAndViolatedConditions -> {
                         final Policy policy = policyAndViolatedConditions.getKey();
                         final List<PolicyCondition> violatedConditions = policyAndViolatedConditions.getValue();
 
                         if ((policy.getOperator() == Policy.Operator.ANY && !violatedConditions.isEmpty())
                                 || (policy.getOperator() == Policy.Operator.ALL && violatedConditions.size() == policy.getPolicyConditions().size())) {
-                            return violatedConditions.stream()
-                                    .map(condition -> {
-                                        final var violation = new PolicyViolation();
-                                        violation.setComponent(component);
-                                        violation.setPolicyCondition(condition);
-                                        violation.setType(condition.getViolationType());
-                                        violation.setTimestamp(new Date());
-                                        return violation;
-                                    });
+                            final var violation = new PolicyViolation();
+                            violation.setProject(component.getProject());
+                            violation.setComponent(component);
+                            violation.setPolicy(policy);
+                            violation.setType(PolicyViolation.Type.OPERATIONAL); // TODO: We need violationType at policy level
+                            violation.setMatchedConditions(violatedConditions);
+                            violation.setTimestamp(new Date());
+                            return violation;
                         }
 
-                        return Stream.empty();
+                        return null;
                     })
+                    .filter(Objects::nonNull)
                     .toList();
 
             // Reconcile the violations created above with what's already in the database.
@@ -257,7 +256,8 @@ public class CelPolicyEngine {
 
             // Notify users about any new violations.
             for (final PolicyViolation newViolation : newViolations) {
-                NotificationUtil.analyzeNotificationCriteria(qm, newViolation);
+                // TODO: Handle switch from policyCondition to matchedConditions in PolicyViolation
+                // NotificationUtil.analyzeNotificationCriteria(qm, newViolation);
             }
         } finally {
             timerSample.stop(Timer
@@ -270,7 +270,7 @@ public class CelPolicyEngine {
     }
 
     // TODO: Move to PolicyQueryManager
-    private static List<Policy> getApplicablePolicies(final QueryManager qm, final Project project) {
+    private static List<Policy> getApplicablePolicies(final QueryManager qm, final Project project, final Set<PolicyScope> scopes) {
         var filter = """
                 (this.projects.isEmpty() && this.tags.isEmpty())
                     || (this.projects.contains(:project)
@@ -311,6 +311,9 @@ public class CelPolicyEngine {
             }
             filter += ")";
         }
+
+        filter = "(%s) && :scopes.contains(this.scope)".formatted(filter);
+        params.put("scopes", scopes);
 
         final List<Policy> policies;
         final Query<Policy> query = qm.getPersistenceManager().newQuery(Policy.class);
@@ -547,10 +550,10 @@ public class CelPolicyEngine {
 
             for (final PolicyViolation violation : violations) {
                 final Query<PolicyViolation> query = qm.getPersistenceManager().newQuery(PolicyViolation.class);
-                query.setFilter("component == :component && policyCondition == :policyCondition && type == :type");
+                query.setFilter("component == :component && policy == :policy && type == :type");
                 query.setNamedParameters(Map.of(
                         "component", violation.getComponent(),
-                        "policyCondition", violation.getPolicyCondition(),
+                        "policy", violation.getPolicy(),
                         "type", violation.getType()
                 ));
                 query.setResult("id");

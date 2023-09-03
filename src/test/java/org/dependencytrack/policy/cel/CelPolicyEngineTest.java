@@ -103,6 +103,126 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
     }
 
     @Test
+    public void testPolicyOperatorAnyWithOneConditionMatching() {
+        final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
+        final PolicyCondition policyConditionA = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        component.name == "foo"
+                        """);
+        final PolicyCondition policyConditionB = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        component.name == "bar"
+                        """);
+
+        final var project = new Project();
+        project.setName("acme-app");
+        qm.persist(project);
+
+        final var component = new Component();
+        component.setProject(project);
+        component.setName("foo");
+        qm.persist(component);
+
+        final var policyEngine = new CelPolicyEngine();
+        policyEngine.evaluateComponent(component.getUuid());
+
+        assertThat(qm.getAllPolicyViolations(component)).satisfiesExactly(violation -> {
+            assertThat(violation.getPolicy().getUuid()).isEqualTo(policy.getUuid());
+            assertThat(violation.getMatchedConditions()).hasSize(1);
+            assertThat(violation.getMatchedConditions().get(0).getUuid()).isEqualTo(policyConditionA.getUuid());
+        });
+    }
+
+    @Test
+    public void testPolicyOperatorAnyWithAllConditionsMatching() {
+        final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
+        final PolicyCondition policyConditionA = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        component.name == "foo"
+                        """);
+        final PolicyCondition policyConditionB = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        component.name != "bar"
+                        """);
+
+        final var project = new Project();
+        project.setName("acme-app");
+        qm.persist(project);
+
+        final var component = new Component();
+        component.setProject(project);
+        component.setName("foo");
+        qm.persist(component);
+
+        final var policyEngine = new CelPolicyEngine();
+        policyEngine.evaluateComponent(component.getUuid());
+
+        assertThat(qm.getAllPolicyViolations(component)).satisfiesExactly(violation -> {
+            assertThat(violation.getPolicy().getUuid()).isEqualTo(policy.getUuid());
+            assertThat(violation.getMatchedConditions()).hasSize(2);
+            assertThat(violation.getMatchedConditions().get(0).getUuid()).isEqualTo(policyConditionA.getUuid());
+            assertThat(violation.getMatchedConditions().get(1).getUuid()).isEqualTo(policyConditionB.getUuid());
+        });
+    }
+
+    @Test
+    public void testPolicyOperatorAllWithOneConditionMatching() {
+        final var policy = qm.createPolicy("policy", Policy.Operator.ALL, Policy.ViolationState.FAIL);
+        qm.createPolicyCondition(policy, PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                component.name == "foo"
+                """);
+        qm.createPolicyCondition(policy, PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                component.name == "bar"
+                """);
+
+        final var project = new Project();
+        project.setName("acme-app");
+        qm.persist(project);
+
+        final var component = new Component();
+        component.setProject(project);
+        component.setName("foo");
+        qm.persist(component);
+
+        final var policyEngine = new CelPolicyEngine();
+        policyEngine.evaluateComponent(component.getUuid());
+
+        assertThat(qm.getAllPolicyViolations(component)).isEmpty();
+    }
+
+    @Test
+    public void testPolicyOperatorAllWithAllConditionsMatching() {
+        final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
+        final PolicyCondition policyConditionA = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        component.name == "foo"
+                        """);
+        final PolicyCondition policyConditionB = qm.createPolicyCondition(policy,
+                PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                        component.name != "bar"
+                        """);
+
+        final var project = new Project();
+        project.setName("acme-app");
+        qm.persist(project);
+
+        final var component = new Component();
+        component.setProject(project);
+        component.setName("foo");
+        qm.persist(component);
+
+        final var policyEngine = new CelPolicyEngine();
+        policyEngine.evaluateComponent(component.getUuid());
+
+        assertThat(qm.getAllPolicyViolations(component)).satisfiesExactly(violation -> {
+            assertThat(violation.getPolicy().getUuid()).isEqualTo(policy.getUuid());
+            assertThat(violation.getMatchedConditions()).hasSize(2);
+            assertThat(violation.getMatchedConditions().get(0).getUuid()).isEqualTo(policyConditionA.getUuid());
+            assertThat(violation.getMatchedConditions().get(1).getUuid()).isEqualTo(policyConditionB.getUuid());
+        });
+    }
+
+    @Test
     public void testIsDirectDependency() {
         final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
         final PolicyCondition policyCondition = qm.createPolicyCondition(policy,
