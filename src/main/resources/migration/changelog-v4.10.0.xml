@@ -1,0 +1,21 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+
+    <changeSet id="v4.10.0-1" author="nscuro@protonmail.com" dbms="postgresql">
+        <dropIndex tableName="VULNERABLESOFTWARE" indexName="VULNERABLESOFTWARE_PART_VENDOR_PRODUCT_IDX"/>
+        <createIndex tableName="VULNERABLESOFTWARE" indexName="VULNERABLESOFTWARE_PART_VENDOR_PRODUCT_IDX">
+            <column name="UPPER(&quot;PART&quot;)" computed="true"/>
+            <column name="UPPER(&quot;VENDOR&quot;)" computed="true"/>
+            <column name="UPPER(&quot;PRODUCT&quot;)" computed="true"/>
+        </createIndex>
+        <customChange class="org.dependencytrack.persistence.migration.custom.ExampleCustomChange"/>
+    </changeSet>
+</databaseChangeLog>
