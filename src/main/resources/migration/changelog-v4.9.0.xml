@@ -8,8 +8,10 @@
             http://www.liquibase.org/xml/ns/dbchangelog
             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         objectQuotingStrategy="QUOTE_ALL_OBJECTS">
-    <property dbms="mssql" name="byteArrayType" value="VARBINARY(max)"/>
     <property dbms="h2,postgresql" name="byteArrayType" value="BYTEA"/>
+    <property dbms="mssql" name="byteArrayType" value="VARBINARY(max)"/>
+    <property dbms="h2" name="textType" value="CLOB"/>
+    <property dbms="mssql,postgresql" name="textType" value="TEXT"/>
 
     <!--
       TODO:
@@ -22,6 +24,12 @@
     -->
 
     <changeSet author="nscuro@protonmail.com" id="v4.9.0-1">
+        <preConditions>
+            <not>
+                <tableExists tableName="SCHEMAVERSION"/>
+            </not>
+        </preConditions>
+        
         <createTable tableName="COMPONENT">
             <column autoIncrement="true" name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="COMPONENT_PK"/>
@@ -1964,5 +1972,9 @@
         <addForeignKeyConstraint baseColumnNames="PROJECT_ID" baseTableName="VIOLATIONANALYSIS" constraintName="VIOLATIONANALYSIS_FK3" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PROJECT" validate="true"/>
         <addForeignKeyConstraint baseColumnNames="VULNERABILITY_ID" baseTableName="VULNERABLESOFTWARE_VULNERABILITIES" constraintName="VULNERABLESOFTWARE_VULNERABILITIES_FK1" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="VULNERABILITY" validate="true"/>
         <addForeignKeyConstraint baseColumnNames="VULNERABLESOFTWARE_ID" baseTableName="VULNERABLESOFTWARE_VULNERABILITIES" constraintName="VULNERABLESOFTWARE_VULNERABILITIES_FK2" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="VULNERABLESOFTWARE" validate="true"/>
+    </changeSet>
+
+    <changeSet id="v4.9.0-2" author="nscuro@protonmail.com">
+        <dropTable tableName="SCHEMAVERSION"/>
     </changeSet>
 </databaseChangeLog>
