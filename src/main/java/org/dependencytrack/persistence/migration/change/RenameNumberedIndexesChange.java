@@ -53,15 +53,11 @@ public class RenameNumberedIndexesChange implements CustomTaskChange {
     private static final Map<IndexDefinition, String> INDEX_NAMES = Map.ofEntries(
             Map.entry(
                     indexDef("AFFECTEDVERSIONATTRIBUTION", "VULNERABILITY"),
-                    "AFFECTEDVERSIONATTRIBUTION_VULNERABILITY_ID_IDX"
+                    "AFFECTEDVERSIONATTRIBUTION_VULNERABILITY_IDX"
             ),
             Map.entry(
                     indexDef("AFFECTEDVERSIONATTRIBUTION", "VULNERABLE_SOFTWARE"),
-                    "AFFECTEDVERSIONATTRIBUTION_VULNERABLESOFTWARE_ID_IDX"
-            ),
-            Map.entry(
-                    indexDef("ANALYSIS", "COMPONENT_ID"),
-                    "ANALYSIS_COMPONENT_ID_IDX"
+                    "AFFECTEDVERSIONATTRIBUTION_VULNERABLE_SOFTWARE_IDX"
             ),
             Map.entry(
                     indexDef("ANALYSIS", "PROJECT_ID"),
@@ -72,16 +68,20 @@ public class RenameNumberedIndexesChange implements CustomTaskChange {
                     "ANALYSIS_VULNERABILITY_ID_IDX"
             ),
             Map.entry(
+                    indexDef("ANALYSIS", "COMPONENT_ID"),
+                    "ANALYSIS_COMPONENT_ID_IDX"
+            ),
+            Map.entry(
                     indexDef("ANALYSISCOMMENT", "ANALYSIS_ID"),
                     "ANALYSISCOMMENT_ANALYSIS_ID_IDX"
             ),
             Map.entry(
-                    indexDef("APIKEYS_TEAMS", "APIKEY_ID"),
-                    "APIKEYS_TEAMS_APIKEY_ID_IDX"
-            ),
-            Map.entry(
                     indexDef("APIKEYS_TEAMS", "TEAM_ID"),
                     "APIKEYS_TEAMS_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("APIKEYS_TEAMS", "APIKEY_ID"),
+                    "APIKEYS_TEAMS_APIKEY_ID_IDX"
             ),
             Map.entry(
                     indexDef("BOM", "PROJECT_ID"),
@@ -94,6 +94,226 @@ public class RenameNumberedIndexesChange implements CustomTaskChange {
             Map.entry(
                     indexDef("COMPONENT", "PARENT_COMPONENT_ID"),
                     "COMPONENT_PARENT_COMPONENT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("COMPONENTS_VULNERABILITIES", "COMPONENT_ID"),
+                    "COMPONENTS_VULNERABILITIES_COMPONENT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("COMPONENTS_VULNERABILITIES", "VULNERABILITY_ID"),
+                    "COMPONENTS_VULNERABILITIES_VULNERABILITY_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("DEPENDENCYMETRICS", "COMPONENT_ID"),
+                    "DEPENDENCYMETRICS_COMPONENT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("DEPENDENCYMETRICS", "PROJECT_ID"),
+                    "DEPENDENCYMETRICS_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("FINDINGATTRIBUTION", "VULNERABILITY_ID"),
+                    "FINDINGATTRIBUTION_VULNERABILITY_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("FINDINGATTRIBUTION", "PROJECT_ID"),
+                    "FINDINGATTRIBUTION_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("FINDINGATTRIBUTION", "COMPONENT_ID"),
+                    "FINDINGATTRIBUTION_COMPONENT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("LDAPUSERS_PERMISSIONS", "PERMISSION_ID"),
+                    "LDAPUSERS_PERMISSIONS_PERMISSION_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("LDAPUSERS_PERMISSIONS", "LDAPUSER_ID"),
+                    "LDAPUSERS_PERMISSIONS_LDAPUSER_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("LDAPUSERS_TEAMS", "LDAPUSER_ID"),
+                    "LDAPUSERS_TEAMS_LDAPUSER_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("LDAPUSERS_TEAMS", "TEAM_ID"),
+                    "LDAPUSERS_TEAMS_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("LICENSEGROUP_LICENSE", "LICENSE_ID"),
+                    "LICENSEGROUP_LICENSE_LICENSE_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("LICENSEGROUP_LICENSE", "LICENSEGROUP_ID"),
+                    "LICENSEGROUP_LICENSE_LICENSEGROUP_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("MANAGEDUSERS_PERMISSIONS", "MANAGEDUSER_ID"),
+                    "MANAGEDUSERS_PERMISSIONS_MANAGEDUSER_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("MANAGEDUSERS_PERMISSIONS", "PERMISSION_ID"),
+                    "MANAGEDUSERS_PERMISSIONS_PERMISSION_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("MANAGEDUSERS_TEAMS", "MANAGEDUSER_ID"),
+                    "MANAGEDUSERS_TEAMS_MANAGEDUSER_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("MANAGEDUSERS_TEAMS", "TEAM_ID"),
+                    "MANAGEDUSERS_TEAMS_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("MAPPEDLDAPGROUP", "TEAM_ID"),
+                    "MAPPEDLDAPGROUP_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("MAPPEDOIDCGROUP", "GROUP_ID"),
+                    "MAPPEDOIDCGROUP_GROUP_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("MAPPEDOIDCGROUP", "TEAM_ID"),
+                    "MAPPEDOIDCGROUP_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("NOTIFICATIONRULE", "PUBLISHER"),
+                    "NOTIFICATIONRULE_PUBLISHER_IDX"
+            ),
+            Map.entry(
+                    indexDef("NOTIFICATIONRULE_PROJECTS", "PROJECT_ID"),
+                    "NOTIFICATIONRULE_PROJECTS_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("NOTIFICATIONRULE_PROJECTS", "NOTIFICATIONRULE_ID"),
+                    "NOTIFICATIONRULE_PROJECTS_NOTIFICATIONRULE_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("NOTIFICATIONRULE_TEAMS", "TEAM_ID"),
+                    "NOTIFICATIONRULE_TEAMS_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("NOTIFICATIONRULE_TEAMS", "NOTIFICATIONRULE_ID"),
+                    "NOTIFICATIONRULE_TEAMS_NOTIFICATIONRULE_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("OIDCUSERS_PERMISSIONS", "OIDCUSER_ID"),
+                    "OIDCUSERS_PERMISSIONS_OIDCUSER_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("OIDCUSERS_PERMISSIONS", "PERMISSION_ID"),
+                    "OIDCUSERS_PERMISSIONS_PERMISSION_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("OIDCUSERS_TEAMS", "OIDCUSERS_ID"),
+                    "OIDCUSERS_TEAMS_OIDCUSERS_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("OIDCUSERS_TEAMS", "TEAM_ID"),
+                    "OIDCUSERS_TEAMS_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("POLICYCONDITION", "POLICY_ID"),
+                    "POLICYCONDITION_POLICY_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("POLICYVIOLATION", "POLICYCONDITION_ID"),
+                    "POLICYVIOLATION_POLICYCONDITION_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("POLICY_PROJECTS", "PROJECT_ID"),
+                    "POLICY_PROJECTS_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("POLICY_PROJECTS", "POLICY_ID"),
+                    "POLICY_PROJECTS_POLICY_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("POLICY_TAGS", "POLICY_ID"),
+                    "POLICY_TAGS_POLICY_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("POLICY_TAGS", "TAG_ID"),
+                    "POLICY_TAGS_TAG_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("PROJECT", "PARENT_PROJECT_ID"),
+                    "PROJECT_PARENT_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("PROJECTMETRICS", "PROJECT_ID"),
+                    "PROJECTMETRICS_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("PROJECTS_TAGS", "PROJECT_ID"),
+                    "PROJECTS_TAGS_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("PROJECTS_TAGS", "TAG_ID"),
+                    "PROJECTS_TAGS_TAG_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("PROJECT_ACCESS_TEAMS", "PROJECT_ID"),
+                    "PROJECT_ACCESS_TEAMS_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("PROJECT_ACCESS_TEAMS", "TEAM_ID"),
+                    "PROJECT_ACCESS_TEAMS_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("PROJECT_PROPERTY", "PROJECT_ID"),
+                    "PROJECT_PROPERTY_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("SERVICECOMPONENT", "PROJECT_ID"),
+                    "SERVICECOMPONENT_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("SERVICECOMPONENT", "PARENT_SERVICECOMPONENT_ID"),
+                    "SERVICECOMPONENT_PARENT_SERVICECOMPONENT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("SERVICECOMPONENTS_VULNERABILITIES", "SERVICECOMPONENT_ID"),
+                    "SERVICECOMPONENTS_VULNERABILITIES_SERVICECOMPONENT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("SERVICECOMPONENTS_VULNERABILITIES", "VULNERABILITY_ID"),
+                    "SERVICECOMPONENTS_VULNERABILITIES_VULNERABILITY_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("TEAMS_PERMISSIONS", "PERMISSION_ID"),
+                    "TEAMS_PERMISSIONS_PERMISSION_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("TEAMS_PERMISSIONS", "TEAM_ID"),
+                    "TEAMS_PERMISSIONS_TEAM_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("VEX", "PROJECT_ID"),
+                    "VEX_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("VIOLATIONANALYSIS", "COMPONENT_ID"),
+                    "VIOLATIONANALYSIS_COMPONENT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("VIOLATIONANALYSIS", "POLICYVIOLATION_ID"),
+                    "VIOLATIONANALYSIS_POLICYVIOLATION_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("VIOLATIONANALYSIS", "PROJECT_ID"),
+                    "VIOLATIONANALYSIS_PROJECT_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("VIOLATIONANALYSISCOMMENT", "VIOLATIONANALYSIS_ID"),
+                    "VIOLATIONANALYSISCOMMENT_VIOLATIONANALYSIS_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("VULNERABLESOFTWARE_VULNERABILITIES", "VULNERABILITY_ID"),
+                    "VULNERABLESOFTWARE_VULNERABILITIES_VULNERABILITY_ID_IDX"
+            ),
+            Map.entry(
+                    indexDef("VULNERABLESOFTWARE_VULNERABILITIES", "VULNERABLESOFTWARE_ID"),
+                    "VULNERABLESOFTWARE_VULNERABILITIES_VULNERABLESOFTWARE_ID_IDX"
             )
     );
 
@@ -112,7 +332,8 @@ public class RenameNumberedIndexesChange implements CustomTaskChange {
     @Override
     public void execute(final Database database) throws CustomChangeException {
         final var connection = (JdbcConnection) database.getConnection();
-        if (!"PostgreSQL".equals(database.getDatabaseProductName())) {
+        if (!"H2".equals(database.getDatabaseProductName())
+                && !"PostgreSQL".equals(database.getDatabaseProductName())) {
             throw new CustomChangeException("Database %s is not supported".formatted(database.getDatabaseProductName()));
         }
 
@@ -156,9 +377,38 @@ public class RenameNumberedIndexesChange implements CustomTaskChange {
 
     private static List<IndexNameMapping> getIndexNameMappings(final JdbcConnection connection) throws DatabaseException, SQLException {
         return switch (connection.getDatabaseProductName()) {
+            case "H2" -> getIndexNameMappingsFromH2(connection);
             case "PostgreSQL" -> getIndexNameMappingsFromPostgres(connection);
             default -> throw new IllegalStateException();
         };
+    }
+
+    private static List<IndexNameMapping> getIndexNameMappingsFromH2(final JdbcConnection connection) throws DatabaseException, SQLException {
+        final var indexNameMapping = new ArrayList<IndexNameMapping>();
+
+        try (final var stmt = connection.createStatement()) {
+            final ResultSet rs = stmt.executeQuery("""
+                    SELECT
+                      "IDX"."TABLE_NAME",
+                      "IDX"."INDEX_NAME",
+                      "IDX_C"."COLUMN_NAME"
+                    FROM
+                      "INFORMATION_SCHEMA"."INDEXES" AS "IDX"
+                    INNER JOIN
+                      "INFORMATION_SCHEMA"."INDEX_COLUMNS" AS "IDX_C" ON "IDX_C"."INDEX_NAME" = "IDX"."INDEX_NAME"
+                    WHERE
+                      "IDX"."TABLE_SCHEMA" = 'PUBLIC' AND "IDX"."INDEX_NAME" REGEXP '_N[0-9]+$';
+                    """);
+            while (rs.next()) {
+                final String tableName = rs.getString("TABLE_NAME");
+                final String oldIndexName = rs.getString("INDEX_NAME");
+                final String[] columnNames = rs.getString("COLUMN_NAME").split(",");
+                final String newIndexName = INDEX_NAMES.get(indexDef(tableName, columnNames));
+                indexNameMapping.add(new IndexNameMapping(oldIndexName, newIndexName));
+            }
+        }
+
+        return indexNameMapping;
     }
 
     private static List<IndexNameMapping> getIndexNameMappingsFromPostgres(final JdbcConnection connection) throws DatabaseException, SQLException {
@@ -204,6 +454,7 @@ public class RenameNumberedIndexesChange implements CustomTaskChange {
 
     private static List<IndexNameMapping> renameIndexes(final JdbcConnection connection, final List<IndexNameMapping> indexNameMappings) throws DatabaseException, SQLException {
         return switch (connection.getDatabaseProductName()) {
+            case "H2" -> renameIndexesForPostgres(connection, indexNameMappings);
             case "Microsoft SQL Server" -> renameIndexesForMsSql(connection, indexNameMappings);
             case "PostgreSQL" -> renameIndexesForPostgres(connection, indexNameMappings);
             default -> throw new IllegalStateException();

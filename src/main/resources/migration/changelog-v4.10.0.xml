@@ -8,11 +8,7 @@
             http://www.liquibase.org/xml/ns/dbchangelog
             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         objectQuotingStrategy="QUOTE_ALL_OBJECTS">
-    <changeSet id="v4.10.0-1" author="nscuro@protonmail.com">
-        <customChange class="org.dependencytrack.persistence.migration.change.RenameNumberedIndexesChange"/>
-    </changeSet>
-
-    <changeSet id="v4.10.0-2" author="nscuro@protonmail.com" dbms="postgresql">
+    <changeSet id="v4.10.0-1" author="nscuro@protonmail.com" dbms="postgresql">
         <dropIndex tableName="VULNERABLESOFTWARE" indexName="VULNERABLESOFTWARE_PART_VENDOR_PRODUCT_IDX"/>
         <createIndex tableName="VULNERABLESOFTWARE" indexName="VULNERABLESOFTWARE_PART_VENDOR_PRODUCT_IDX">
             <column name="UPPER(&quot;PART&quot;)" computed="true"/>
