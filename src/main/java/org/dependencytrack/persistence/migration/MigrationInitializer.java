@@ -19,6 +19,7 @@
 package org.dependencytrack.persistence.migration;
 
 import alpine.Config;
+import alpine.common.logging.Logger;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import liquibase.Liquibase;
@@ -30,12 +31,15 @@ import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.dependencytrack.common.ConfigKey;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.util.HashMap;
+import java.util.Collections;
 
 public class MigrationInitializer implements ServletContextListener {
+
+    private static final Logger LOGGER = Logger.getLogger(MigrationInitializer.class);
 
     private final Config config;
 
@@ -50,10 +54,14 @@ public class MigrationInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(final ServletContextEvent event) {
-        final var liquibaseConfig = new HashMap<String, Object>();
+        if (!config.getPropertyAsBoolean(ConfigKey.RUN_MIGRATIONS)) {
+            LOGGER.info("Migrations are disabled; Skipping");
+            return;
+        }
 
+        LOGGER.info("Running migrations");
         try (final HikariDataSource dataSource = createDataSource()) {
-            Scope.child(liquibaseConfig, () -> {
+            Scope.child(Collections.emptyMap(), () -> {
                 final Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()));
                 final var liquibase = new Liquibase("migration/changelog-main.xml", new ClassLoaderResourceAccessor(), database);
 
@@ -63,7 +71,7 @@ public class MigrationInitializer implements ServletContextListener {
                 updateCommand.execute();
             });
         } catch (Exception e) {
-            throw new RuntimeException("Failed to execute migration", e);
+            throw new RuntimeException("Failed to execute migrations", e);
         }
     }
 
