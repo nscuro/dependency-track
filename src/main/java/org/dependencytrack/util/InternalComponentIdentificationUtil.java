@@ -18,13 +18,19 @@
  */
 package org.dependencytrack.util;
 
+import alpine.common.logging.Logger;
 import alpine.model.ConfigProperty;
-import org.apache.commons.lang3.StringUtils;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.ConfigPropertyConstants;
 import org.dependencytrack.persistence.QueryManager;
 
 import java.util.regex.Pattern;
+
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.dependencytrack.model.ConfigPropertyConstants.INTERNAL_COMPONENTS_GROUPS_REGEX;
+import static org.dependencytrack.model.ConfigPropertyConstants.INTERNAL_COMPONENTS_NAMES_REGEX;
 
 /**
  * @author nscuro
@@ -32,43 +38,66 @@ import java.util.regex.Pattern;
  */
 public final class InternalComponentIdentificationUtil {
 
+    private enum PatternType {
+        GROUP,
+        NAME
+    }
+
+    private static final LoadingCache<PatternType, Pattern> CACHE = Caffeine.newBuilder()
+            .build(InternalComponentIdentificationUtil::loadPattern);
+    private static final Logger LOGGER = Logger.getLogger(InternalComponentIdentificationUtil.class);
+
     private InternalComponentIdentificationUtil() {
     }
 
-    public static boolean isInternalComponent(final Component component, final QueryManager qm) {
-        return isInternalGroup(component.getGroup(), qm) || isInternalName(component.getName(), qm);
+    public static boolean isInternalComponent(final Component component) {
+        return matchesPattern(component, PatternType.GROUP) || matchesPattern(component, PatternType.NAME);
     }
 
-    private static boolean isInternalGroup(final String group, final QueryManager qm) {
-        if (StringUtils.trimToNull(group) == null) {
-            return false;
-        }
-
-        final ConfigProperty internalGroupsRegexProperty = qm.getConfigProperty(
-                ConfigPropertyConstants.INTERNAL_COMPONENTS_GROUPS_REGEX.getGroupName(),
-                ConfigPropertyConstants.INTERNAL_COMPONENTS_GROUPS_REGEX.getPropertyName()
-        );
-        if (internalGroupsRegexProperty == null || StringUtils.trimToNull(internalGroupsRegexProperty.getPropertyValue()) == null) {
-            return false;
-        }
-
-        return Pattern.matches(StringUtils.trimToNull(internalGroupsRegexProperty.getPropertyValue()), group);
+    public static void invalidateCache() {
+        CACHE.invalidateAll();
     }
 
-    private static boolean isInternalName(final String name, final QueryManager qm) {
-        if (StringUtils.trimToNull(name) == null) {
+    private static boolean matchesPattern(final Component component, final PatternType patternType) {
+        final Pattern pattern = CACHE.get(patternType);
+        if (pattern == null) {
             return false;
         }
 
-        final ConfigProperty internalNamesRegexProperty = qm.getConfigProperty(
-                ConfigPropertyConstants.INTERNAL_COMPONENTS_NAMES_REGEX.getGroupName(),
-                ConfigPropertyConstants.INTERNAL_COMPONENTS_NAMES_REGEX.getPropertyName()
-        );
-        if (internalNamesRegexProperty == null || StringUtils.trimToNull(internalNamesRegexProperty.getPropertyValue()) == null) {
+        final String valueToMatch = switch (patternType) {
+            case GROUP -> component.getGroup();
+            case NAME -> component.getName();
+        };
+        if (valueToMatch == null) {
             return false;
         }
 
-        return Pattern.matches(StringUtils.trimToNull(internalNamesRegexProperty.getPropertyValue()), name);
+        return pattern.matcher(valueToMatch).matches();
+    }
+
+    private static Pattern loadPattern(final PatternType patternType) {
+        LOGGER.info("Loading pattern %s".formatted(patternType));
+
+        final ConfigPropertyConstants propertyConstant = switch (patternType) {
+            case GROUP -> INTERNAL_COMPONENTS_GROUPS_REGEX;
+            case NAME -> INTERNAL_COMPONENTS_NAMES_REGEX;
+        };
+
+        final String configuredPattern;
+        try (final var qm = new QueryManager()) {
+            final ConfigProperty property = qm.getConfigProperty(
+                    propertyConstant.getGroupName(),
+                    propertyConstant.getPropertyName()
+            );
+
+            configuredPattern = property != null
+                    ? trimToNull(property.getPropertyValue())
+                    : null;
+        }
+
+        return configuredPattern != null
+                ? Pattern.compile(configuredPattern)
+                : null;
     }
 
 }

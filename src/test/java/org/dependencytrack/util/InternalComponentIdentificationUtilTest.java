@@ -93,7 +93,7 @@ public class InternalComponentIdentificationUtilTest {
         component.setGroup(componentGroup);
         component.setName(componentName);
 
-        assertEquals(shouldBeInternal, InternalComponentIdentificationUtil.isInternalComponent(component, queryManagerMock));
+        assertEquals(shouldBeInternal, InternalComponentIdentificationUtil.isInternalComponent(component));
     }
 
 }

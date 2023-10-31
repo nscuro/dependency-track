@@ -78,7 +78,7 @@ public class InternalComponentIdentificationTask implements Subscriber {
                         coordinates = component.getGroup() + ":" + coordinates;
                     }
 
-                    final boolean internal = InternalComponentIdentificationUtil.isInternalComponent(component, qm);
+                    final boolean internal = InternalComponentIdentificationUtil.isInternalComponent(component);
                     if (internal) {
                         LOGGER.debug("Component " + coordinates + " (" + component.getUuid() + ") was identified to be internal");
                     }
