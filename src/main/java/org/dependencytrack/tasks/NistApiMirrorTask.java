@@ -53,6 +53,8 @@ import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.model.Vulnerability.Source;
 import org.dependencytrack.model.VulnerableSoftware;
 import org.dependencytrack.persistence.QueryManager;
+import org.dependencytrack.util.LuceneNvdCveApiCacheManager;
+import org.dependencytrack.util.LuceneNvdCveApiCacheManager.Mode;
 import org.dependencytrack.util.PersistenceUtil.Diff;
 import org.dependencytrack.util.PersistenceUtil.Differ;
 
@@ -161,7 +163,7 @@ public class NistApiMirrorTask implements Subscriber {
         final var numMirrored = new AtomicInteger(0);
         ZonedDateTime lastModified;
         try (final NvdCveClient client = createApiClient(apiUrl, apiKey, lastModifiedEpochSeconds)) {
-            try {
+            try (final LuceneNvdCveApiCacheManager cveApiCacheManager = LuceneNvdCveApiCacheManager.create(Mode.READ_WRITE)) {
                 while (client.hasNext()) {
                     for (final DefCveItem defCveItem : client.next()) {
                         final CveItem cveItem = defCveItem.getCve();
@@ -171,6 +173,7 @@ public class NistApiMirrorTask implements Subscriber {
 
                         final Vulnerability vuln = convert(cveItem);
                         final List<VulnerableSoftware> vsList = convertConfigurations(cveItem.getId(), cveItem.getConfigurations());
+                        cveApiCacheManager.addCve(cveItem);
 
                         executor.submit(() -> {
                             try (final var qm = new QueryManager().withL2CacheDisabled()) {
