@@ -19,6 +19,7 @@
 package org.dependencytrack.parser.cyclonedx.util;
 
 import alpine.common.logging.Logger;
+import alpine.model.IConfigProperty.PropertyType;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,6 +39,7 @@ import org.dependencytrack.model.AnalysisState;
 import org.dependencytrack.model.Classifier;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.ComponentIdentity;
+import org.dependencytrack.model.ComponentProperty;
 import org.dependencytrack.model.Cwe;
 import org.dependencytrack.model.DataClassification;
 import org.dependencytrack.model.ExternalReference;
@@ -168,6 +170,7 @@ public class ModelConverter {
         component.setCopyright(trimToNull(cdxComponent.getCopyright()));
         component.setCpe(trimToNull(cdxComponent.getCpe()));
         component.setExternalReferences(convertExternalReferences(cdxComponent.getExternalReferences()));
+        component.setProperties(convertToComponentProperties(cdxComponent.getProperties()));
 
         if (cdxComponent.getPurl() != null) {
             try {
@@ -253,6 +256,36 @@ public class ModelConverter {
         }
 
         return component;
+    }
+
+    private static List<ComponentProperty> convertToComponentProperties(final List<org.cyclonedx.model.Property> cdxProperties) {
+        if (cdxProperties == null || cdxProperties.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return cdxProperties.stream().map(ModelConverter::convertToComponentProperty).toList();
+    }
+
+    private static ComponentProperty convertToComponentProperty(final org.cyclonedx.model.Property cdxProperty) {
+        if (cdxProperty == null) {
+            return null;
+        }
+
+        final var componentProperty = new ComponentProperty();
+        componentProperty.setPropertyValue(cdxProperty.getValue());
+        componentProperty.setPropertyType(PropertyType.STRING);
+
+        // https://cyclonedx.github.io/cyclonedx-property-taxonomy/
+        final int lastNameSeparatorIndex = cdxProperty.getName().lastIndexOf(":");
+        if (lastNameSeparatorIndex < 0) {
+            componentProperty.setGroupName("internal");
+            componentProperty.setPropertyName(cdxProperty.getName());
+        } else {
+            componentProperty.setGroupName(cdxProperty.getName().substring(0, lastNameSeparatorIndex));
+            componentProperty.setPropertyName(cdxProperty.getName().substring(lastNameSeparatorIndex + 1));
+        }
+
+        return componentProperty;
     }
 
     public static List<ServiceComponent> convertServices(final List<org.cyclonedx.model.Service> cdxServices) {

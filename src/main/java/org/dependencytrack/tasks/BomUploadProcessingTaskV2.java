@@ -41,6 +41,7 @@ import org.dependencytrack.model.AnalysisComment;
 import org.dependencytrack.model.Bom;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.ComponentIdentity;
+import org.dependencytrack.model.ComponentProperty;
 import org.dependencytrack.model.DependencyMetrics;
 import org.dependencytrack.model.FindingAttribution;
 import org.dependencytrack.model.License;
@@ -74,6 +75,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -438,6 +440,22 @@ public class BomUploadProcessingTaskV2 implements Subscriber {
                 applyIfChanged(persistentComponent, component, Component::getLicenseUrl, persistentComponent::setLicenseUrl);
                 applyIfChanged(persistentComponent, component, Component::isInternal, persistentComponent::setInternal);
                 applyIfChanged(persistentComponent, component, Component::getExternalReferences, persistentComponent::setExternalReferences);
+
+                for (final ComponentProperty componentProperty : component.getProperties()) {
+                    final Optional<ComponentProperty> optionalPersistentProperty = persistentComponent.getProperties().stream()
+                            .filter(property -> Objects.equals(property.getGroupName(), componentProperty.getGroupName()))
+                            .filter(property -> Objects.equals(property.getPropertyName(), componentProperty.getPropertyName()))
+                            .findFirst();
+                    if (optionalPersistentProperty.isPresent()) {
+                        final ComponentProperty persistentProperty = optionalPersistentProperty.get();
+                        applyIfChanged(persistentProperty, componentProperty, ComponentProperty::getPropertyValue, persistentProperty::setPropertyValue);
+                        applyIfChanged(persistentProperty, componentProperty, ComponentProperty::getPropertyType, persistentProperty::setPropertyType);
+                        applyIfChanged(persistentProperty, componentProperty, ComponentProperty::getDescription, persistentProperty::setDescription);
+                    } else {
+                        componentProperty.setComponent(persistentComponent);
+                        qm.getPersistenceManager().makePersistent(componentProperty);
+                    }
+                }
 
                 idsOfComponentsToDelete.remove(persistentComponent.getId());
             }
