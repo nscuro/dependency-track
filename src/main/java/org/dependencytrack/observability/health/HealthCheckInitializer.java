@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Steve Springett. All Rights Reserved.
  */
-package org.dependencytrack.health;
+package org.dependencytrack.observability.health;
 
 import alpine.common.logging.Logger;
 import alpine.server.health.HealthCheckRegistry;

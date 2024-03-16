@@ -39,7 +39,7 @@
         <listener-class>alpine.server.persistence.PersistenceManagerFactory</listener-class>
     </listener>
     <listener>
-        <listener-class>org.dependencytrack.health.HealthCheckInitializer</listener-class>
+        <listener-class>org.dependencytrack.observability.health.HealthCheckInitializer</listener-class>
     </listener>
     <listener>
         <listener-class>org.dependencytrack.persistence.DefaultObjectGenerator</listener-class>
