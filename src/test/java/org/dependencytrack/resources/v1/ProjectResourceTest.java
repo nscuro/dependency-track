@@ -746,7 +746,7 @@ public class ProjectResourceTest extends ResourceTest {
                         """);
 
         // Ensure the parent was updated.
-        qm.getPersistenceManager().refresh(project);
+        qm.getPersistenceManager().evictAll();
         assertThat(project.getParent()).isNotNull();
         assertThat(project.getParent().getUuid()).isEqualTo(newParent.getUuid());
     }

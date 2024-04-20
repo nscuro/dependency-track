@@ -25,6 +25,7 @@ import alpine.event.framework.Event;
 import alpine.event.framework.LoggableUncaughtExceptionHandler;
 import alpine.event.framework.Subscriber;
 import alpine.model.ConfigProperty;
+import alpine.persistence.Transaction;
 import alpine.security.crypto.DataEncryption;
 import io.github.jeremylong.openvulnerability.client.HttpAsyncClientSupplier;
 import io.github.jeremylong.openvulnerability.client.nvd.CveItem;
@@ -232,9 +233,8 @@ public class NistApiMirrorTask implements Subscriber {
     }
 
     private static Vulnerability synchronizeVulnerability(final QueryManager qm, final Vulnerability vuln) {
-        final Pair<Vulnerability, IndexEvent> vulnIndexEventPair = qm.runInTransaction(trx -> {
-            trx.setSerializeRead(true); // SELECT ... FOR UPDATE
-
+        final Transaction.Options trxOptions = Transaction.defaultOptions().withSerializeRead(true);
+        final Pair<Vulnerability, IndexEvent> vulnIndexEventPair = qm.callInTransaction(trxOptions, () -> {
             Vulnerability persistentVuln = getVulnerabilityByCveId(qm, vuln.getVulnId());
             if (persistentVuln == null) {
                 persistentVuln = qm.getPersistenceManager().makePersistent(vuln);
@@ -262,9 +262,7 @@ public class NistApiMirrorTask implements Subscriber {
     }
 
     private static void synchronizeVulnerableSoftware(final QueryManager qm, final Vulnerability persistentVuln, final List<VulnerableSoftware> vsList) {
-        qm.runInTransaction(tx -> {
-            tx.setSerializeRead(false);
-
+        qm.runInTransaction(() -> {
             // Get all VulnerableSoftware records that are currently associated with the vulnerability.
             // Note: For SOME ODD REASON, duplicate (as in, same database ID and all) VulnerableSoftware
             // records are returned, when operating on data that was originally created by the feed-based
