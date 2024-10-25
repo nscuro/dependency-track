@@ -88,6 +88,8 @@
         <frontend.version>4.12.0</frontend.version>
         <lib.alpine.version>${project.parent.version}</lib.alpine.version>
         <lib.awaitility.version>4.2.2</lib.awaitility.version>
+        <lib.aws-advanced-jdbc-wrapper.version>2.5.1</lib.aws-advanced-jdbc-wrapper.version>
+        <lib.aws-rds-sdk.version>2.29.1</lib.aws-rds-sdk.version>
         <lib.brotli-decoder.version>0.1.2</lib.brotli-decoder.version>
         <lib.checkstyle.version>10.18.1</lib.checkstyle.version>
         <lib.cloud-sql-connector-jdbc-sqlserver.version>1.20.1</lib.cloud-sql-connector-jdbc-sqlserver.version>
@@ -348,6 +350,16 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${lib.jdbc-driver.postgresql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.jdbc</groupId>
+            <artifactId>aws-advanced-jdbc-wrapper</artifactId>
+            <version>${lib.aws-advanced-jdbc-wrapper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>rds</artifactId>
+            <version>${lib.aws-rds-sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.cloud.sql</groupId>
