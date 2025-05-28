@@ -508,6 +508,12 @@
             <version>${lib.testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -590,6 +596,37 @@
                         <version>${lib.checkstyle.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>7.13.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-tea-client</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <addCompileSourceRoot>true</addCompileSourceRoot>
+                            <inputSpec>${project.basedir}/src/main/resources/tea/openapi.yaml</inputSpec>
+                            <generatorName>java</generatorName>
+                            <generateApiTests>false</generateApiTests>
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <generateModelTests>false</generateModelTests>
+                            <configOptions>
+                                <apiPackage>org.cyclonedx.tea.api.v2</apiPackage>
+                                <modelPackage>org.cyclonedx.tea.api.v2.model</modelPackage>
+                                <useJakartaEe>true</useJakartaEe>
+                                <generateBuilders>true</generateBuilders>
+                                <generatePom>false</generatePom>
+<!--                                <sourceFolder>src/main/java</sourceFolder>-->
+                                <library>native</library>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>io.github.ascopes</groupId>
