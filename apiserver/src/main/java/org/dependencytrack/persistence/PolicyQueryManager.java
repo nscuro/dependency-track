@@ -22,6 +22,7 @@ import alpine.model.auth.ApiKeyPrincipal;
 import alpine.model.auth.UserPrincipal;
 import alpine.persistence.PaginatedResult;
 import alpine.resources.AlpineRequest;
+import com.google.errorprone.annotations.CompileTimeConstant;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.LicenseGroup;
 import org.dependencytrack.model.Policy;
@@ -570,7 +571,11 @@ final class PolicyQueryManager extends QueryManager {
     }
 
     private void processArrayFilter(
-            Map<String, Object> params, List<String> filterCriteria, String paramName, String filter, String column) {
+            Map<String, Object> params,
+            List<String> filterCriteria,
+            @CompileTimeConstant String paramName,
+            String filter,
+            @CompileTimeConstant String column) {
         if (filter != null && !filter.isEmpty()) {
             StringBuilder filterBuilder = new StringBuilder("(");
             String[] arrayFilter = filter.split(",");

@@ -18,6 +18,7 @@
  */
 package org.dependencytrack.persistence.jdbi;
 
+import com.google.errorprone.annotations.CompileTimeConstant;
 import org.dependencytrack.common.pagination.Page;
 import org.dependencytrack.common.pagination.Page.TotalCount;
 import org.dependencytrack.model.AnalysisState;
@@ -1252,7 +1253,11 @@ public interface FindingDao extends PaginationSupport {
     }
 
     private void processArrayFilter(
-            StringBuilder queryFilter, Map<String, Object> params, String paramName, String filter, String column) {
+            StringBuilder queryFilter,
+            Map<String, Object> params,
+            String paramName,
+            String filter,
+            @CompileTimeConstant String column) {
         if (filter != null && !filter.isEmpty()) {
             queryFilter.append(" AND (");
             String[] filters = filter.split(",");
@@ -1279,7 +1284,7 @@ public interface FindingDao extends PaginationSupport {
             Map<String, Object> params,
             String paramName,
             String filter,
-            String column,
+            @CompileTimeConstant String column,
             boolean fromValue,
             boolean isDate,
             boolean isAggregateFilter) {
