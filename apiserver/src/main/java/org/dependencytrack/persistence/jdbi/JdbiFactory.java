@@ -121,6 +121,8 @@ public class JdbiFactory {
      *
      * @return The global {@link Jdbi} instance
      */
+    // Detects a replaced DataSource instance, so identity is what matters.
+    @SuppressWarnings("ReferenceEquality")
     public static Jdbi createJdbi() {
         return GLOBAL_INSTANCE_HOLDER
                 .updateAndGet(previous -> {

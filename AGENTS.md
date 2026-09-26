@@ -44,6 +44,8 @@ Only set it when the change targets a patch release branch, e.g. `make lint BASE
 > | `dex/engine-migration/src/main/resources/**/*.sql` | `make lint-dex-migration` |
 >
 > `make format-java` fixes everything `make lint-java` checks, so there is no need to run the latter after it.
+> Error Prone is not part of `make lint-java`. It runs during compilation, so its findings fail `make build` and `make test`.
+> Fix findings instead of suppressing them. See [Static Analysis](DEVELOPING.md#static-analysis) for when suppression is acceptable.
 > `make format-proto` only fixes formatting. `make lint-proto` additionally enforces naming rules that it cannot fix.
 > The `lint-openapi` and `lint-migrations` targets run their linters in Docker, while `lint-proto` requires a local `buf`.
 > `make lint` runs every check above, and is the better choice when a change spans several of them.

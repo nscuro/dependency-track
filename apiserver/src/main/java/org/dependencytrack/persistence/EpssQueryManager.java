@@ -37,6 +37,7 @@ final class EpssQueryManager extends QueryManager {
         super(pm);
     }
 
+    @Override
     public @Nullable Epss getEffectiveEpssForVuln(String source, String vulnId) {
         final Query<?> query = pm.newQuery(Query.SQL, /* language=SQL */ """
                 SELECT "CVE"
@@ -75,6 +76,7 @@ final class EpssQueryManager extends QueryManager {
     public record EffectiveEpssRow(
             String vulnSource, String vulnId, String cve, BigDecimal score, BigDecimal percentile) {}
 
+    @Override
     public Map<VulnerabilityKey, Epss> getEffectiveEpssForVulns(Collection<VulnerabilityKey> keys) {
         if (keys.isEmpty()) {
             return Map.of();

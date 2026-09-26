@@ -82,6 +82,7 @@ public class PersistenceManagerFactory implements IPersistenceManagerFactory, Se
         return pmf.getPersistenceManager();
     }
 
+    @Override
     public PersistenceManager getPersistenceManager() {
         return createPersistenceManager();
     }

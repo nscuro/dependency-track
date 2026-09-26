@@ -1588,7 +1588,7 @@ final class DexEngineImpl implements DexEngine {
         // The buffer may fail an item without ever invoking the batch consumer,
         // e.g. when its circuit breaker is open. Propagate such failures, or the
         // renewal would never settle and the scheduler would wait for it forever.
-        bufferFuture.whenComplete((_, error) -> {
+        var _ = bufferFuture.whenComplete((_, error) -> {
             if (error != null) {
                 future.completeExceptionally(error);
             }

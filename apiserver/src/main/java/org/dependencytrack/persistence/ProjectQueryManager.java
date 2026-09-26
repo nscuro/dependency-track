@@ -494,6 +494,7 @@ final class ProjectQueryManager extends QueryManager {
         return executeAndCloseResultUnique(query, Boolean.class);
     }
 
+    @Override
     void preprocessACLs(final Query<?> query, final String inputFilter, final Map<String, Object> params) {
         if (isPortfolioAclBypassed(principal)) {
             query.setFilter(inputFilter);
@@ -657,6 +658,7 @@ final class ProjectQueryManager extends QueryManager {
         }
     }
 
+    @Override
     public List<ProjectVersion> getProjectVersions(Project project) {
         final Query<Project> query = pm.newQuery(Project.class);
         query.setResult("uuid, version, isLatest, inactiveSince");
