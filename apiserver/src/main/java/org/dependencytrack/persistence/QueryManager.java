@@ -156,6 +156,11 @@ public class QueryManager extends AlpineQueryManager {
         this.request = request;
     }
 
+    /// @since 5.2.0
+    public AlpineRequest getAlpineRequest() {
+        return request;
+    }
+
     /**
      * @since 5.0.0
      */
@@ -431,10 +436,6 @@ public class QueryManager extends AlpineQueryManager {
 
     public List<ProjectVersion> getProjectVersions(final Project project) {
         return getProjectQueryManager().getProjectVersions(project);
-    }
-
-    public boolean hasAccess(final Principal principal, final Project project) {
-        return getProjectQueryManager().hasAccess(principal, project);
     }
 
     void preprocessACLs(final Query<?> query, final String inputFilter, final Map<String, Object> params) {

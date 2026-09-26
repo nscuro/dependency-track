@@ -56,7 +56,6 @@ import org.dependencytrack.resources.v1.problems.ProblemDetails;
 import org.dependencytrack.tasks.IdentifyInternalComponentsWorkflow;
 import org.dependencytrack.util.InternalComponentIdentifier;
 import org.dependencytrack.util.PurlUtil;
-import org.jdbi.v3.core.Handle;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Validator;
@@ -84,7 +83,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.dependencytrack.dex.DexWorkflowLabels.WF_LABEL_TRIGGERED_BY;
-import static org.dependencytrack.persistence.jdbi.JdbiFactory.openJdbiHandle;
+import static org.dependencytrack.persistence.jdbi.JdbiFactory.useJdbiTransaction;
 import static org.dependencytrack.persistence.jdbi.JdbiFactory.withJdbiHandle;
 
 /**
@@ -652,7 +651,13 @@ public class ComponentResource extends AbstractApiResource {
                                 @Content(
                                         schema = @Schema(implementation = ProblemDetails.class),
                                         mediaType = ProblemDetails.MEDIA_TYPE_JSON)),
-                @ApiResponse(responseCode = "404", description = "The UUID of the component could not be found")
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "The UUID of the component could not be found",
+                        content =
+                                @Content(
+                                        schema = @Schema(implementation = ProblemDetails.class),
+                                        mediaType = ProblemDetails.MEDIA_TYPE_JSON))
             })
     @PermissionRequired({Permissions.Constants.PORTFOLIO_MANAGEMENT, Permissions.Constants.PORTFOLIO_MANAGEMENT_DELETE})
     public Response deleteComponent(
@@ -663,23 +668,12 @@ public class ComponentResource extends AbstractApiResource {
                     @PathParam("uuid")
                     @ValidUuid
                     String uuid) {
-        try (QueryManager qm = new QueryManager(getAlpineRequest())) {
-            return qm.callInTransaction(() -> {
-                final Component component = qm.getObjectByUuid(Component.class, uuid, Component.FetchGroup.ALL.name());
-                if (component != null) {
-                    requireAccess(qm, component.getProject());
-                    try (final Handle jdbiHandle = openJdbiHandle()) {
-                        final var componentDao = jdbiHandle.attach(ComponentDao.class);
-                        componentDao.deleteComponent(component.getUuid());
-                    }
-                    return Response.status(Response.Status.NO_CONTENT).build();
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND)
-                            .entity("The UUID of the component could not be found.")
-                            .build();
-                }
-            });
-        }
+        final UUID componentUuid = UUID.fromString(uuid);
+        useJdbiTransaction(getAlpineRequest(), handle -> {
+            requireComponentAccess(handle, componentUuid);
+            handle.attach(ComponentDao.class).deleteComponent(componentUuid);
+        });
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @GET

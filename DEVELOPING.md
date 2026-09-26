@@ -65,6 +65,8 @@ JDO and DataNucleus are being phased out. New persistence code should use [JDBI]
 with raw SQL. Avoid touching JDO entities unless the change genuinely requires it, and do not
 build new features on top of the JDO layer.
 
+See [`docs/PERSISTENCE.md`](./docs/PERSISTENCE.md).
+
 ### Throughput over latency
 
 The system processes large volumes of components, vulnerabilities, and analyses. Optimize
