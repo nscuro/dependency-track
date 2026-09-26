@@ -18,6 +18,7 @@
  */
 package org.dependencytrack.persistence.jdbi;
 
+import com.google.errorprone.annotations.CompileTimeConstant;
 import org.dependencytrack.model.DependencyMetrics;
 import org.dependencytrack.model.PortfolioMetrics;
 import org.dependencytrack.model.Project;
@@ -663,7 +664,7 @@ public interface MetricsDao extends SqlObject {
         return dropPartitions("\"DEPENDENCYMETRICS\"", expired);
     }
 
-    default int dropPartitions(final String parentTable, final List<String> partitions) {
+    default int dropPartitions(@CompileTimeConstant final String parentTable, final List<String> partitions) {
         requireValidTableIdentifier(parentTable);
 
         int deletedCount = 0;

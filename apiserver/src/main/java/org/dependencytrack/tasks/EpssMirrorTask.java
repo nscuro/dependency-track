@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_EPSS_ENABLED;
 import static org.dependencytrack.model.ConfigPropertyConstants.VULNERABILITY_SOURCE_EPSS_FEEDS_URL;
 import static org.dependencytrack.persistence.jdbi.JdbiFactory.inJdbiTransaction;
@@ -108,7 +109,7 @@ public final class EpssMirrorTask implements Runnable {
         try (final var fileInputStream = Files.newInputStream(feedFilePath, StandardOpenOption.DELETE_ON_CLOSE);
                 final var bufferedInputStream = new BufferedInputStream(fileInputStream);
                 final var gzipInputStream = new GZIPInputStream(bufferedInputStream);
-                final var inputStreamReader = new InputStreamReader(gzipInputStream);
+                final var inputStreamReader = new InputStreamReader(gzipInputStream, UTF_8);
                 final var bufferedReader = new BufferedReader(inputStreamReader)) {
             final var recordBatch = new ArrayList<Epss>(BATCH_SIZE);
 

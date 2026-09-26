@@ -53,6 +53,7 @@ final class BomQueryManager extends QueryManager {
      * @param imported the Date when the bom was imported
      * @return a new Bom object
      */
+    @Override
     public Bom createBom(
             Project project,
             Date imported,
@@ -78,6 +79,7 @@ final class BomQueryManager extends QueryManager {
      * @param project the Project to retrieve boms for
      * @return a List of Boms
      */
+    @Override
     @SuppressWarnings("unchecked")
     public List<Bom> getAllBoms(Project project) {
         final Query<Bom> query = pm.newQuery(Bom.class, "project == :project");

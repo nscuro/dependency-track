@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import static org.datanucleus.PropertyNames.PROPERTY_QUERY_SQL_ALLOWALL;
 import static org.dependencytrack.util.PersistenceUtil.assertPersistent;
@@ -177,7 +178,7 @@ public class NotificationQueryManager extends QueryManager {
         }
         if (this.filter != null) {
             filterParts.add("name.toLowerCase().matches(:name) || publisher.name.toLowerCase().matches(:name)");
-            filterParams.put("name", ".*" + filter.toLowerCase() + ".*");
+            filterParams.put("name", ".*" + filter.toLowerCase(Locale.ROOT) + ".*");
         }
 
         final Query<NotificationRule> query = pm.newQuery(NotificationRule.class);

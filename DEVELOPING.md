@@ -146,6 +146,18 @@ which IntelliJ offers on first open. Enable it per project under
 
 `make format-java` is the source of truth.
 
+### Static Analysis
+
+Static analysis happens for every build using [Error Prone](https://errorprone.info/).
+This covers `make build`, `make test`, and builds from the IDE. It is not part of `make lint-java`.
+We exclusively use `ERROR`-level checks, so findings fail compilation. Test sources are *not* checked.
+
+Fix findings instead of suppressing them. For false positives, suppress the check on the smallest
+possible scope and consider including a comment as to *why* the check is wrong if the reason is not obvious.
+
+Error Prone's [bug patterns](https://errorprone.info/bugpatterns) documentation includes details
+and suppression guidance.
+
 ## Testing
 
 Run all tests:

@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -76,6 +77,7 @@ final class PolicyQueryManager extends QueryManager {
      * Returns a List of all Policy objects.
      * @return a List of all Policy objects
      */
+    @Override
     public PaginatedResult getPolicies() {
         final Query<Policy> query = pm.newQuery(Policy.class);
         if (orderBy == null) {
@@ -83,7 +85,7 @@ final class PolicyQueryManager extends QueryManager {
         }
         if (filter != null) {
             query.setFilter("name.toLowerCase().matches(:filter)");
-            final String filterString = ".*" + filter.toLowerCase() + ".*";
+            final String filterString = ".*" + filter.toLowerCase(Locale.ROOT) + ".*";
             return execute(query, filterString);
         }
         return execute(query);
@@ -94,6 +96,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param name the name of the policy (required)
      * @return a Policy object, or null if not found
      */
+    @Override
     public Policy getPolicy(final String name) {
         final Query<Policy> query = pm.newQuery(Policy.class, "name == :name");
         query.setRange(0, 1);
@@ -107,6 +110,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param violationState the violation state
      * @return the created Policy
      */
+    @Override
     public Policy createPolicy(
             String name,
             Policy.Operator operator,
@@ -124,6 +128,7 @@ final class PolicyQueryManager extends QueryManager {
      * Creates a policy condition for the specified Project.
      * @return the created PolicyCondition object
      */
+    @Override
     public PolicyCondition createPolicyCondition(
             final Policy policy,
             final PolicyCondition.Subject subject,
@@ -136,6 +141,7 @@ final class PolicyQueryManager extends QueryManager {
      * Creates a policy condition for the specified Project.
      * @return the created PolicyCondition object
      */
+    @Override
     public PolicyCondition createPolicyCondition(
             final Policy policy,
             final PolicyCondition.Subject subject,
@@ -159,6 +165,7 @@ final class PolicyQueryManager extends QueryManager {
      * Updates a policy condition.
      * @return the updated PolicyCondition object
      */
+    @Override
     public PolicyCondition updatePolicyCondition(final PolicyCondition policyCondition) {
         final PolicyCondition pc = getObjectByUuid(PolicyCondition.class, policyCondition.getUuid());
         pc.setSubject(policyCondition.getSubject());
@@ -177,6 +184,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param component The component to fetch {@link PolicyViolation}s for
      * @return a List of {@link PolicyViolation}s
      */
+    @Override
     public List<PolicyViolation> getAllPolicyViolations(final Component component) {
         return getAllPolicyViolations(component, true);
     }
@@ -187,6 +195,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param includeSuppressed Whether to include suppressed violations or not
      * @return a List of {@link PolicyViolation}s
      */
+    @Override
     public List<PolicyViolation> getAllPolicyViolations(final Component component, final boolean includeSuppressed) {
         final Query<PolicyViolation> query = pm.newQuery(PolicyViolation.class);
         if (includeSuppressed) {
@@ -214,6 +223,7 @@ final class PolicyQueryManager extends QueryManager {
      * This method if designed NOT to provide paginated results.
      * @return a List of all Policy objects
      */
+    @Override
     @SuppressWarnings("unchecked")
     public List<PolicyViolation> getAllPolicyViolations(final Project project) {
         final Query<PolicyViolation> query = pm.newQuery(PolicyViolation.class, "project.id == :pid");
@@ -228,6 +238,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param project the project to retrieve violations for
      * @return a List of all Policy violations
      */
+    @Override
     @SuppressWarnings("unchecked")
     public PaginatedResult getPolicyViolations(final Project project, boolean includeSuppressed) {
         PaginatedResult result;
@@ -242,7 +253,7 @@ final class PolicyQueryManager extends QueryManager {
             query.setFilter(
                     queryFilter
                             + " && (policyCondition.policy.name.toLowerCase().matches(:filter) || component.name.toLowerCase().matches(:filter))");
-            final String filterString = ".*" + filter.toLowerCase() + ".*";
+            final String filterString = ".*" + filter.toLowerCase(Locale.ROOT) + ".*";
             result = execute(query, project.getId(), filterString);
         } else {
             query.setFilter(queryFilter);
@@ -264,6 +275,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param component the component to retrieve violations for
      * @return a List of all Policy violations
      */
+    @Override
     @SuppressWarnings("unchecked")
     public PaginatedResult getPolicyViolations(final Component component, boolean includeSuppressed) {
         final Query<PolicyViolation> query = pm.newQuery(PolicyViolation.class);
@@ -291,6 +303,7 @@ final class PolicyQueryManager extends QueryManager {
      * Returns a List of all Policy violations for the entire portfolio filtered by ACL and other optional filters.
      * @return a List of all Policy violations
      */
+    @Override
     @SuppressWarnings("unchecked")
     public PaginatedResult getPolicyViolations(
             boolean includeSuppressed, boolean showInactive, Map<String, String> filters) {
@@ -328,6 +341,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param policyViolation the PolicyViolation
      * @return a ViolationAnalysis object, or null if not found
      */
+    @Override
     public ViolationAnalysis getViolationAnalysis(Component component, PolicyViolation policyViolation) {
         final Query<ViolationAnalysis> query =
                 pm.newQuery(ViolationAnalysis.class, "component == :component && policyViolation == :policyViolation");
@@ -338,6 +352,7 @@ final class PolicyQueryManager extends QueryManager {
     /**
      * @since 5.0.0
      */
+    @Override
     public long makeViolationAnalysis(final MakeViolationAnalysisCommand command) {
         assertPersistent(command.component(), "component must be persistent");
         assertPersistent(command.violation(), "violation must be persistent");
@@ -444,6 +459,7 @@ final class PolicyQueryManager extends QueryManager {
      * Returns a List of all LicenseGroup objects.
      * @return a List of all LicenseGroup objects
      */
+    @Override
     public PaginatedResult getLicenseGroups() {
         final Query<LicenseGroup> query = pm.newQuery(LicenseGroup.class);
         if (orderBy == null) {
@@ -451,7 +467,7 @@ final class PolicyQueryManager extends QueryManager {
         }
         if (filter != null) {
             query.setFilter("name.toLowerCase().matches(:filter)");
-            final String filterString = ".*" + filter.toLowerCase() + ".*";
+            final String filterString = ".*" + filter.toLowerCase(Locale.ROOT) + ".*";
             return execute(query, filterString);
         }
         return execute(query);
@@ -462,6 +478,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param name the name of the license group (required)
      * @return a LicenseGroup object, or null if not found
      */
+    @Override
     public LicenseGroup getLicenseGroup(final String name) {
         final Query<LicenseGroup> query = pm.newQuery(LicenseGroup.class, "name == :name");
         query.setRange(0, 1);
@@ -473,6 +490,7 @@ final class PolicyQueryManager extends QueryManager {
      * @param name the name of the license group to create
      * @return the created LicenseGroup
      */
+    @Override
     public LicenseGroup createLicenseGroup(String name) {
         final LicenseGroup licenseGroup = new LicenseGroup();
         licenseGroup.setName(name);
@@ -596,7 +614,7 @@ final class PolicyQueryManager extends QueryManager {
             StringBuilder filterBuilder = new StringBuilder("(");
             String[] inputFilter = filter.split(",");
             for (int i = 0, inputFilterLength = inputFilter.length; i < inputFilterLength; i++) {
-                switch (inputFilter[i].toLowerCase()) {
+                switch (inputFilter[i].toLowerCase(Locale.ROOT)) {
                     case "policy_name" -> filterBuilder.append("policyCondition.policy.name");
                     case "component" -> filterBuilder.append("component.name");
                     case "license" ->
@@ -618,7 +636,7 @@ final class PolicyQueryManager extends QueryManager {
                     filterBuilder.append(" || ");
                 }
             }
-            params.put(paramName, ".*" + input.toLowerCase() + ".*");
+            params.put(paramName, ".*" + input.toLowerCase(Locale.ROOT) + ".*");
             filterBuilder.append(")");
             filterCriteria.add(filterBuilder.toString());
         }

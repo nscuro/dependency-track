@@ -31,6 +31,7 @@ import alpine.persistence.OrderDirection;
 import alpine.persistence.PaginatedResult;
 import alpine.resources.AlpineRequest;
 import com.github.packageurl.PackageURL;
+import com.google.errorprone.annotations.CompileTimeConstant;
 import org.datanucleus.api.jdo.JDOQuery;
 import org.dependencytrack.auth.Permissions;
 import org.dependencytrack.auth.ProjectAccess;
@@ -87,6 +88,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -213,7 +215,7 @@ public class QueryManager extends AlpineQueryManager {
             }
             if (foundPersistentMember) {
                 // NB: Changed from AbstractAlpineQueryManager#decorate to always sort by ID.
-                query.setOrdering(orderBy + " " + orderDirection.name().toLowerCase() + ", id asc");
+                query.setOrdering(orderBy + " " + orderDirection.name().toLowerCase(Locale.ROOT) + ", id asc");
             } else {
                 // Is it a non-persistent (transient) field?
                 final boolean foundNonPersistentMember = Arrays.stream(
@@ -334,9 +336,7 @@ public class QueryManager extends AlpineQueryManager {
      */
     private EpssQueryManager getEpssQueryManager() {
         if (epssQueryManager == null) {
-            epssQueryManager = (request == null)
-                    ? new EpssQueryManager(getPersistenceManager())
-                    : new EpssQueryManager(getPersistenceManager());
+            epssQueryManager = new EpssQueryManager(getPersistenceManager());
         }
         return epssQueryManager;
     }
@@ -1158,7 +1158,8 @@ public class QueryManager extends AlpineQueryManager {
      * @return A SQL condition that may be used to check if the {@link Principal} has access to a project
      * @since 4.12.0
      */
-    public Map.Entry<String, Map<String, Object>> getProjectAclSqlCondition(final String projectTableAlias) {
+    public Map.Entry<String, Map<String, Object>> getProjectAclSqlCondition(
+            @CompileTimeConstant final String projectTableAlias) {
         if (isPortfolioAclBypassed(principal)) {
             return Map.entry("TRUE", Collections.emptyMap());
         }

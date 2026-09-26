@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.springett.owasp.riskrating.MissingFactorException;
 import us.springett.owasp.riskrating.OwaspRiskRating;
+import us.springett.owasp.riskrating.Score;
 import us.springett.parsers.cpe.Cpe;
 import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeEncodingException;
@@ -170,7 +171,7 @@ public final class BovModelConverter {
             }
 
             if (!appliedMethods.contains(SCORE_METHOD_CVSSV4)
-                    && (rating.getMethod().equals(SCORE_METHOD_CVSSV4))) {
+                    && rating.getMethod().equals(SCORE_METHOD_CVSSV4)) {
                 vuln.setCvssV4Vector(trimToNull(rating.getVector()));
                 vuln.setCvssV4Score(BigDecimal.valueOf(rating.getScore()));
                 if (rating.hasVector()) {
@@ -235,7 +236,7 @@ public final class BovModelConverter {
                     && rating.getMethod().equals(ScoreMethod.SCORE_METHOD_OWASP)) {
                 try {
                     final OwaspRiskRating orr = OwaspRiskRating.fromVector(rating.getVector());
-                    final us.springett.owasp.riskrating.Score orrScore = orr.calculateScore();
+                    final Score orrScore = orr.calculateScore();
                     vuln.setOwaspRRVector(trimToNull(rating.getVector()));
                     vuln.setOwaspRRLikelihoodScore(BigDecimal.valueOf(orrScore.getLikelihoodScore()));
                     vuln.setOwaspRRBusinessImpactScore(BigDecimal.valueOf(orrScore.getBusinessImpactScore()));

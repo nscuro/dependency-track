@@ -181,8 +181,6 @@
         <lib.versatile.version>0.25.0</lib.versatile.version>
         <lib.wiremock.version>3.13.2</lib.wiremock.version>
         <lib.zstd-jni.version>1.5.7-17</lib.zstd-jni.version>
-        <!-- Severity of NullAway findings. Set to OFF to disable. -->
-        <nullaway.severity>ERROR</nullaway.severity>
         <!-- Number of JVM processes to use for unit test parallelization -->
         <unitTestForkCount>1</unitTestForkCount>
         <!-- Log level to use for unit tests -->
@@ -704,7 +702,32 @@
                             <arg>-Xplugin:ErrorProne
                                 -XepDisableAllWarnings
                                 -XepExcludedPaths:.*/target/generated-(test-)?sources/.*
-                                -Xep:NullAway:${nullaway.severity}
+                                -Xep:BadInstanceof:ERROR
+                                -Xep:CatchAndPrintStackTrace:ERROR
+                                -Xep:CollectionUndefinedEquality:ERROR
+                                -Xep:DefaultCharset:ERROR
+                                -Xep:DuplicateBranches:ERROR
+                                -Xep:EmptyCatch:ERROR
+                                -Xep:FutureReturnValueIgnored:ERROR
+                                -Xep:InterruptedExceptionSwallowed:ERROR
+                                -Xep:JavaDurationGetSecondsToToSeconds:ERROR
+                                -Xep:JavaPeriodGetDays:ERROR
+                                -Xep:LockNotBeforeTry:ERROR
+                                -Xep:MissingBraces:ERROR
+                                -Xep:MissingCasesInEnumSwitch:ERROR
+                                -Xep:MissingOverride:ERROR
+                                -Xep:NullAway:ERROR
+                                -Xep:ObjectEqualsForPrimitives:ERROR
+                                -Xep:OperatorPrecedence:ERROR
+                                -Xep:ReferenceEquality:ERROR
+                                -Xep:StaticAssignmentOfThrowable:ERROR
+                                -Xep:StringCaseLocaleUsage:ERROR
+                                -Xep:UnnecessarilyFullyQualified:ERROR
+                                -Xep:UnnecessaryParentheses:ERROR
+                                -Xep:UnusedException:ERROR
+                                -Xep:UnusedMethod:ERROR
+                                -Xep:UnusedVariable:ERROR
+                                -XepOpt:BadImport:BadEnclosingTypes=org.cyclonedx.model.vulnerability.Vulnerability,org.cyclonedx.model.vulnerability.Vulnerability.Analysis,org.cyclonedx.model.vulnerability.Vulnerability.Rating,org.dependencytrack.proto.policy.v1.License,org.dependencytrack.proto.policy.v1.Vulnerability
                                 -XepOpt:NullAway:OnlyNullMarked=true
                                 -XepOpt:NullAway:TreatGeneratedAsUnannotated=true</arg>
                         </compilerArgs>
@@ -729,9 +752,8 @@
                     <executions>
                         <execution>
                             <!--
-                              Do not run Error Prone on test sources. Nullness of test code is not
-                              enforced, and running the plugin there roughly doubles the Error Prone
-                              overhead for no benefit.
+                              Do not run Error Prone on test sources. Checks are not enforced for test code,
+                              and running the plugin there roughly doubles the Error Prone overhead for no benefit.
                             -->
                             <id>default-testCompile</id>
                             <configuration>

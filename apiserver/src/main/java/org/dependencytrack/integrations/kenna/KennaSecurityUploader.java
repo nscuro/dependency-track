@@ -42,6 +42,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_NAME;
 import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_UUID;
@@ -121,7 +122,7 @@ public class KennaSecurityUploader extends AbstractIntegrationPoint implements P
             projects = fetchNextProjectBatch(qm, projects.getLast().getId());
         }
 
-        return new ByteArrayInputStream(kdi.generate().toString().getBytes());
+        return new ByteArrayInputStream(kdi.generate().toString().getBytes(UTF_8));
     }
 
     @Override
@@ -171,6 +172,8 @@ public class KennaSecurityUploader extends AbstractIntegrationPoint implements P
             } else {
                 handleUnexpectedHttpResponse(LOGGER, request.uri().toString(), response.statusCode(), response.body());
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             LOGGER.error("An error occurred attempting to upload findings to Kenna Security", e);
         }
