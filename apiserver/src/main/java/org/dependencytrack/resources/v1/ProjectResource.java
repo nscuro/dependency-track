@@ -346,8 +346,13 @@ public class ProjectResource extends AbstractApiResource {
             }
             requireAccess(qm, project);
 
-            final boolean isParentAccessible =
-                    project.getParent() != null && qm.hasAccess(getPrincipal(), project.getParent());
+            final UUID parentUuid =
+                    project.getParent() != null ? project.getParent().getUuid() : null;
+            final boolean isParentAccessible = parentUuid != null
+                    && withJdbiHandle(
+                            qm,
+                            handle -> Boolean.TRUE.equals(
+                                    handle.attach(ProjectDao.class).isAccessible(parentUuid)));
 
             qm.makeTransient(project);
             if (!isParentAccessible) {

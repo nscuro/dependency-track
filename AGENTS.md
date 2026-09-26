@@ -63,6 +63,7 @@ Only set it when the change targets a patch release branch, e.g. `make lint BASE
 * [Favor strong cohesion, loose coupling](DEVELOPING.md#strong-cohesion-loose-coupling).
 * [Prefer raw SQL + JDBI for new persistence code](DEVELOPING.md#persistence-prefer-jdbi-and-raw-sql).
   JDO/DataNucleus is legacy; avoid touching unless necessary.
+  See [`docs/PERSISTENCE.md`](docs/PERSISTENCE.md) before mixing the two.
 * Schema changes need a Flyway migration under `migration/src/main/resources/org/dependencytrack/migration`,
   or `dex/engine-migration/src/main/resources/org/dependencytrack/dex/engine/migration` for `dex`.
   `make new-migration` only creates the former.
